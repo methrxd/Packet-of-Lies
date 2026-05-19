@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>POL Command Center</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "secondary-fixed-dim": "#ffb783",
+                      "error": "#ffb4ab",
+                      "on-error-container": "#ffdad6",
+                      "on-tertiary-fixed": "#281900",
+                      "surface-dim": "#0c160d",
+                      "on-error": "#690005",
+                      "tertiary-fixed-dim": "#ecbf79",
+                      "on-tertiary-container": "#79581c",
+                      "on-primary-fixed-variant": "#00531f",
+                      "inverse-on-surface": "#293329",
+                      "on-primary-fixed": "#002108",
+                      "surface-variant": "#2d372d",
+                      "outline-variant": "#3b4b3b",
+                      "inverse-primary": "#006e2c",
+                      "surface": "#0c160d",
+                      "outline": "#849582",
+                      "error-container": "#93000a",
+                      "surface-container-lowest": "#071008",
+                      "on-primary": "#003913",
+                      "secondary-container": "#b55d00",
+                      "on-surface-variant": "#b9cbb7",
+                      "on-surface": "#dae6d6",
+                      "on-secondary-fixed": "#301400",
+                      "primary-fixed-dim": "#00e563",
+                      "surface-container-low": "#141e14",
+                      "surface-tint": "#00e563",
+                      "surface-container-high": "#222c22",
+                      "inverse-surface": "#dae6d6",
+                      "tertiary": "#fff3e5",
+                      "tertiary-container": "#ffd189",
+                      "secondary-fixed": "#ffdcc5",
+                      "on-primary-container": "#006d2b",
+                      "tertiary-fixed": "#ffdead",
+                      "surface-container": "#182218",
+                      "secondary": "#ffb783",
+                      "on-background": "#dae6d6",
+                      "background": "#0c160d",
+                      "on-secondary-container": "#fffbff",
+                      "surface-bright": "#323c31",
+                      "surface-container-highest": "#2d372d",
+                      "primary-fixed": "#68ff89",
+                      "primary-container": "#02f96d",
+                      "on-secondary": "#4f2500",
+                      "primary": "#d8ffd7",
+                      "on-tertiary-fixed-variant": "#5f4104",
+                      "on-tertiary": "#432c00",
+                      "on-secondary-fixed-variant": "#703700"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {},
+              "fontFamily": {
+                      "headline": [
+                              "Geist"
+                      ],
+                      "display": [
+                              "Geist"
+                      ],
+                      "body": [
+                              "Inter"
+                      ],
+                      "label": [
+                              "JetBrains Mono"
+                      ]
+              },
+              "fontSize": {}
+      },
+          },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-headline { font-family: 'Geist', sans-serif; }
+        .font-label { font-family: 'JetBrains Mono', monospace; }
+        /* Hide scrollbar for seamless look */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #2d372d; border-radius: 2px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3b4b3b; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased overflow-hidden h-screen flex">
+<!-- SideNavBar Component -->
+<nav class="fixed left-0 top-0 h-screen w-64 bg-surface-dim border-r border-outline-variant flex flex-col py-6 z-50">
+<div class="px-6 mb-8 flex flex-col gap-2">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-surface-container-high rounded flex items-center justify-center border border-outline-variant/50">
+<span class="material-symbols-outlined text-primary-fixed-dim text-lg" data-icon="terminal">terminal</span>
+</div>
+<h1 class="font-headline font-semibold text-primary-fixed-dim tracking-widest text-sm">PACKET OF LIES</h1>
+</div>
+<p class="font-label text-xs text-on-surface-variant">V.2.0.4-STABLE</p>
+</div>
+<div class="px-6 mb-8">
+<button class="w-full bg-surface-container hover:bg-surface-container-high border border-primary/20 text-primary-fixed-dim font-label text-xs py-2.5 rounded transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[16px]" data-icon="play_arrow">play_arrow</span>
+                INITIATE SCAN
+            </button>
+</div>
+<div class="flex-1 flex flex-col gap-1 px-3">
+<!-- Active Tab: Dashboard -->
+<a class="text-primary bg-primary/5 border-r-2 border-primary-fixed-dim py-3 px-3 flex items-center gap-4 rounded-sm transition-colors translate-x-1" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="dashboard">dashboard</span>
+<span class="font-label text-sm">Dashboard</span>
+</a>
+<a class="text-on-surface-variant py-3 px-3 flex items-center gap-4 hover:text-primary hover:bg-surface-container transition-colors rounded-sm" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="biotech">biotech</span>
+<span class="font-label text-sm">Malware Analysis</span>
+</a>
+<a class="text-on-surface-variant py-3 px-3 flex items-center gap-4 hover:text-primary hover:bg-surface-container transition-colors rounded-sm" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="emergency_home">emergency_home</span>
+<span class="font-label text-sm">Incident Response</span>
+</a>
+<a class="text-on-surface-variant py-3 px-3 flex items-center gap-4 hover:text-primary hover:bg-surface-container transition-colors rounded-sm" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="travel_explore">travel_explore</span>
+<span class="font-label text-sm">Threat Intel</span>
+</a>
+</div>
+<div class="mt-auto px-3 flex flex-col gap-1 border-t border-outline-variant pt-4">
+<a class="text-on-surface-variant py-2 px-3 flex items-center gap-4 hover:text-primary hover:bg-surface-container transition-colors rounded-sm" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="terminal">terminal</span>
+<span class="font-label text-xs">System Status</span>
+</a>
+<a class="text-on-surface-variant py-2 px-3 flex items-center gap-4 hover:text-primary hover:bg-surface-container transition-colors rounded-sm" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="help_center">help_center</span>
+<span class="font-label text-xs">Documentation</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<div class="flex-1 ml-64 flex flex-col relative h-screen">
+<!-- TopAppBar Component -->
+<header class="fixed top-0 right-0 left-64 h-16 bg-surface-container-lowest/80 backdrop-blur-md border-b border-outline-variant flex items-center justify-between px-6 z-40">
+<div class="flex items-center gap-4 text-primary-fixed-dim">
+<span class="material-symbols-outlined text-xl" data-icon="search">search</span>
+<span class="font-label text-sm text-on-surface-variant">SEARCH TELEMETRY...</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2 px-3 py-1 bg-surface-container border border-outline-variant/50 rounded-sm">
+<div class="w-2 h-2 rounded-full bg-primary-fixed-dim"></div>
+<span class="font-label text-xs text-on-surface">SEC_LEVEL: OPTIMAL</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary hover:bg-surface-variant/50 p-2 rounded transition-all">
+<span class="material-symbols-outlined" data-icon="sensors">sensors</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary hover:bg-surface-variant/50 p-2 rounded transition-all relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<div class="absolute top-2 right-2 w-1.5 h-1.5 bg-primary-fixed-dim rounded-full"></div>
+</button>
+<button class="text-on-surface-variant hover:text-primary hover:bg-surface-variant/50 p-2 rounded transition-all mr-2">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="w-8 h-8 bg-surface-variant rounded border border-outline-variant overflow-hidden flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant text-sm" data-icon="person">person</span>
+</div>
+</div>
+</div>
+</header>
+<!-- Dashboard Canvas -->
+<main class="flex-1 mt-16 p-6 overflow-y-auto bg-surface-lowest">
+<div class="max-w-7xl mx-auto flex flex-col gap-6">
+<!-- Header Actions -->
+<div class="flex justify-between items-end mb-2">
+<div>
+<h2 class="font-headline text-2xl font-semibold text-on-surface">Global Telemetry</h2>
+<p class="font-label text-sm text-on-surface-variant mt-1">Realtime threat intelligence matrix</p>
+</div>
+<button class="bg-error/10 hover:bg-error/20 text-error border border-error/30 font-label text-xs py-2 px-4 rounded transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]" data-icon="lock">lock</span>
+                        LOCKDOWN PROTOCOL
+                    </button>
+</div>
+<!-- Primary Metrics Row -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<!-- Metric 1 -->
+<div class="bg-surface-container-low border border-outline-variant/30 p-5 rounded-sm relative overflow-hidden group">
+<div class="absolute top-0 left-0 w-1 h-full bg-primary-fixed-dim opacity-50 group-hover:opacity-100 transition-opacity"></div>
+<div class="flex justify-between items-start">
+<span class="font-label text-xs text-on-surface-variant">ACTIVE INFECTIONS</span>
+<span class="material-symbols-outlined text-primary-fixed-dim text-sm" data-icon="bug_report">bug_report</span>
+</div>
+<div class="mt-3 flex items-baseline gap-2">
+<span class="font-headline text-4xl font-semibold text-primary-fixed-dim">03</span>
+<span class="font-label text-xs text-primary-fixed-dim/60">+1 since last scan</span>
+</div>
+</div>
+<!-- Metric 2 -->
+<div class="bg-surface-container-low border border-outline-variant/30 p-5 rounded-sm relative overflow-hidden">
+<div class="flex justify-between items-start">
+<span class="font-label text-xs text-on-surface-variant">SYSTEM HEALTH</span>
+<span class="material-symbols-outlined text-on-surface-variant text-sm" data-icon="monitor_heart">monitor_heart</span>
+</div>
+<div class="mt-3 flex items-baseline gap-2">
+<span class="font-headline text-4xl font-semibold text-on-surface">94%</span>
+<span class="font-label text-xs text-error">Degraded</span>
+</div>
+<div class="w-full bg-surface-variant h-1 mt-4 rounded-full overflow-hidden">
+<div class="bg-primary-fixed-dim h-full w-[94%]"></div>
+</div>
+</div>
+<!-- Metric 3 -->
+<div class="bg-surface-container-low border border-outline-variant/30 p-5 rounded-sm relative overflow-hidden">
+<div class="flex justify-between items-start">
+<span class="font-label text-xs text-on-surface-variant">NODES SCANNED</span>
+<span class="material-symbols-outlined text-on-surface-variant text-sm" data-icon="dns">dns</span>
+</div>
+<div class="mt-3 flex items-baseline gap-2">
+<span class="font-headline text-4xl font-semibold text-on-surface">1,204</span>
+<span class="font-label text-xs text-on-surface-variant">/ 1,250</span>
+</div>
+</div>
+</div>
+<!-- Main Bento Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-2">
+<!-- Visual Map Area (Takes up 2 columns) -->
+<div class="lg:col-span-2 bg-surface-container-low border border-outline-variant/30 rounded-sm p-1 min-h-[400px] relative flex flex-col">
+<div class="flex justify-between items-center px-4 pt-3 pb-2 border-b border-outline-variant/20">
+<span class="font-label text-xs text-on-surface-variant">THREAT VECTORS</span>
+<div class="flex gap-2">
+<span class="w-2 h-2 rounded-full bg-primary-fixed-dim opacity-50"></span>
+<span class="w-2 h-2 rounded-full bg-primary-fixed-dim opacity-50"></span>
+<span class="w-2 h-2 rounded-full bg-primary-fixed-dim"></span>
+</div>
+</div>
+<div class="flex-1 relative bg-[#050A05] overflow-hidden w-full h-full flex shadow-[inset_0_0_30px_rgba(2,249,109,0.05)]" id="threejs-container">
+<threejs-scene class="w-full h-full">{{DATA:ANIMATION:ANIMATION_1}}</threejs-scene>
+</div>
+</div>
+<!-- Right Column: Live Feed & Detections -->
+<div class="flex flex-col gap-6">
+<!-- Live Feed -->
+<div class="bg-surface-container-low border border-outline-variant/30 rounded-sm flex flex-col h-[200px]">
+<div class="px-4 py-3 border-b border-outline-variant/20 flex justify-between items-center">
+<span class="font-label text-xs text-on-surface-variant">LIVE FEED</span>
+<div class="w-2 h-2 bg-primary-fixed-dim rounded-full animate-pulse"></div>
+</div>
+<div class="flex-1 p-4 overflow-y-auto flex flex-col gap-3 font-label text-[11px]">
+<div class="flex gap-3 text-on-surface-variant opacity-60">
+<span class="text-outline">14:02:11</span>
+<span>[SYS] Syncing node telemetry...</span>
+</div>
+<div class="flex gap-3 text-on-surface">
+<span class="text-outline">14:02:15</span>
+<span>[NET] Inbound connection rejected (Port 443)</span>
+</div>
+<div class="flex gap-3 text-primary-fixed-dim">
+<span class="text-outline">14:02:18</span>
+<span>[SCAN] Routine memory check completed. Clean.</span>
+</div>
+<div class="flex gap-3 text-error bg-error/5 -mx-4 px-4 py-1 border-l-2 border-error">
+<span class="text-outline">14:02:22</span>
+<span>[ALERT] Anomalous payload detected in temp/</span>
+</div>
+<div class="flex gap-3 text-on-surface-variant">
+<span class="text-outline">14:02:25</span>
+<span>[SYS] Quarantine protocol initiated.</span>
+</div>
+</div>
+</div>
+<!-- Recent Detections -->
+<div class="bg-surface-container-low border border-outline-variant/30 rounded-sm flex flex-col flex-1">
+<div class="px-4 py-3 border-b border-outline-variant/20">
+<span class="font-label text-xs text-on-surface-variant">RECENT DETECTIONS</span>
+</div>
+<div class="flex-1 p-2 flex flex-col gap-1 overflow-y-auto">
+<div class="group flex items-center justify-between p-2 hover:bg-surface-variant/30 rounded transition-colors cursor-pointer border border-transparent hover:border-outline-variant/30">
+<div class="flex items-center gap-3">
+<div class="w-1.5 h-6 bg-error rounded-full"></div>
+<div>
+<p class="font-body text-sm font-medium text-on-surface">Trojan.Win32.Generic</p>
+<p class="font-label text-[10px] text-on-surface-variant">Hash: 8f4e3...a1b2</p>
+</div>
+</div>
+<span class="font-label text-xs text-on-surface-variant">2m ago</span>
+</div>
+<div class="group flex items-center justify-between p-2 hover:bg-surface-variant/30 rounded transition-colors cursor-pointer border border-transparent hover:border-outline-variant/30">
+<div class="flex items-center gap-3">
+<div class="w-1.5 h-6 bg-secondary-fixed-dim rounded-full"></div>
+<div>
+<p class="font-body text-sm font-medium text-on-surface">Suspicious_Macro.doc</p>
+<p class="font-label text-[10px] text-on-surface-variant">Hash: c73d1...9f00</p>
+</div>
+</div>
+<span class="font-label text-xs text-on-surface-variant">15m ago</span>
+</div>
+<div class="group flex items-center justify-between p-2 hover:bg-surface-variant/30 rounded transition-colors cursor-pointer border border-transparent hover:border-outline-variant/30">
+<div class="flex items-center gap-3">
+<div class="w-1.5 h-6 bg-secondary-fixed-dim rounded-full"></div>
+<div>
+<p class="font-body text-sm font-medium text-on-surface">Adware.OSX.Bundler</p>
+<p class="font-label text-[10px] text-on-surface-variant">Hash: 11a9b...4c33</p>
+</div>
+</div>
+<span class="font-label text-xs text-on-surface-variant">1h ago</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>
