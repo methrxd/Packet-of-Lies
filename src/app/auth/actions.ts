@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { avatarPathForUser, validateAvatarFile } from "@/lib/avatar";
 import { getAuthContext } from "@/lib/auth";
-import { getServerEnv } from "@/lib/env";
+import { getBootstrapCode } from "@/lib/env";
 import { validateStrongPassword, validateUsername } from "@/lib/security";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -85,8 +85,15 @@ export async function bootstrapFirstAdminAction(
     };
   }
 
-  const serverEnv = getServerEnv();
-  if (parsed.data.bootstrapCode !== serverEnv.SUPER_ADMIN_BOOTSTRAP_CODE) {
+  const bootstrapCode = getBootstrapCode();
+  if (!bootstrapCode) {
+    return {
+      status: "error",
+      message: "Bootstrap code is not configured on the server.",
+    };
+  }
+
+  if (parsed.data.bootstrapCode !== bootstrapCode) {
     return { status: "error", message: "Invalid bootstrap setup code." };
   }
 

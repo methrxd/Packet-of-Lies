@@ -20,8 +20,8 @@ export default function IndicatorsPage() {
     <div className="space-y-6">
       <PageHeader
         eyebrow="Indicators"
-        title="Structured observables shell"
-        description="Indicators are the bridge between raw evidence and reusable threat knowledge. This Phase 1 route gives us the foundation for searchable observables and linked case intelligence."
+        title="Structured observables workspace"
+        description="Indicators bridge raw evidence and reusable threat knowledge, enabling searchable observables and linked case intelligence."
       />
 
       <Card className="border-white/6 bg-[var(--bg-card)]">

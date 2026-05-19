@@ -162,7 +162,7 @@ export default async function SubmissionsPage() {
             Pipeline notes
           </CardDescription>
           <CardTitle className="font-heading text-xl">
-            Workflow behavior in this phase
+            Workflow behavior
           </CardTitle>
         </CardHeader>
         <CardContent>

@@ -13,6 +13,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+export const dynamic = "force-dynamic";
+
 export default async function LoginPage() {
   const admin = createAdminClient();
   const { count } = await admin

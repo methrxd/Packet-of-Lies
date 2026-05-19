@@ -12,6 +12,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+export const dynamic = "force-dynamic";
+
 export default async function BootstrapPage() {
   const admin = createAdminClient();
   const { count, error } = await admin

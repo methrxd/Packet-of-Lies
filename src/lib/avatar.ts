@@ -3,7 +3,7 @@ const JPEG_MAGIC = [0xff, 0xd8, 0xff];
 const PNG_MAGIC = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 
 export type AvatarFileValidation =
-  | { ok: true; extension: "jpg" | "jpeg" | "png"; contentType: "image/jpeg" | "image/png" }
+  | { ok: true; extension: "jpg" | "png"; contentType: "image/jpeg" | "image/png" }
   | { ok: false; message: string };
 
 function bytesStartWith(bytes: Uint8Array, magic: number[]) {
@@ -24,10 +24,10 @@ export async function validateAvatarFile(file: File): Promise<AvatarFileValidati
 
   const name = file.name.toLowerCase();
   const extension = name.includes(".") ? name.split(".").pop() ?? "" : "";
-  const ext = extension === "jpg" || extension === "jpeg" || extension === "png" ? extension : null;
+  const ext = extension === "jpg" || extension === "png" ? extension : null;
 
   if (!ext) {
-    return { ok: false, message: "Only .jpg, .jpeg, or .png files are allowed." };
+    return { ok: false, message: "Only .jpg or .png files are allowed." };
   }
 
   if (
@@ -46,7 +46,7 @@ export async function validateAvatarFile(file: File): Promise<AvatarFileValidati
     return { ok: false, message: "File signature is invalid. Upload a real JPG or PNG image." };
   }
 
-  if ((ext === "png" && !isPng) || ((ext === "jpg" || ext === "jpeg") && !isJpeg)) {
+  if ((ext === "png" && !isPng) || (ext === "jpg" && !isJpeg)) {
     return {
       ok: false,
       message: "File extension does not match file content. Upload a valid JPG or PNG image.",
@@ -60,6 +60,6 @@ export async function validateAvatarFile(file: File): Promise<AvatarFileValidati
   };
 }
 
-export function avatarPathForUser(userId: string, extension: "jpg" | "jpeg" | "png") {
-  return `${userId}/${crypto.randomUUID()}.${extension === "jpeg" ? "jpg" : extension}`;
+export function avatarPathForUser(userId: string, extension: "jpg" | "png") {
+  return `${userId}/${crypto.randomUUID()}.${extension}`;
 }

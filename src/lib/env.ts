@@ -5,8 +5,11 @@ const publicEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().min(1),
 });
 
-const serverEnvSchema = z.object({
+const serviceRoleEnvSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
+});
+
+const bootstrapEnvSchema = z.object({
   SUPER_ADMIN_BOOTSTRAP_CODE: z.string().min(1),
 });
 
@@ -26,11 +29,18 @@ export function hasSupabaseEnv() {
   }).success;
 }
 
-export function getServerEnv() {
-  return serverEnvSchema.parse({
+export function getServiceRoleEnv() {
+  return serviceRoleEnvSchema.parse({
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  });
+}
+
+export function getBootstrapCode() {
+  const parsed = bootstrapEnvSchema.safeParse({
     SUPER_ADMIN_BOOTSTRAP_CODE: process.env.SUPER_ADMIN_BOOTSTRAP_CODE,
   });
+
+  return parsed.success ? parsed.data.SUPER_ADMIN_BOOTSTRAP_CODE : null;
 }
 
 export function getSiteUrl() {
