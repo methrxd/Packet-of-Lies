@@ -9,6 +9,11 @@ const serviceRoleEnvSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
 });
 
+const inviteEmailEnvSchema = z.object({
+  INVITE_SMTP_USER: z.string().trim().email(),
+  INVITE_SMTP_PASS: z.string().trim().min(1),
+});
+
 export function getPublicEnv() {
   return publicEnvSchema.parse({
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -42,6 +47,28 @@ export function getServiceRoleEnv() {
 export function hasServiceRoleEnv() {
   return serviceRoleEnvSchema.safeParse({
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  }).success;
+}
+
+export function getInviteEmailEnv() {
+  const parsed = inviteEmailEnvSchema.safeParse({
+    INVITE_SMTP_USER: process.env.INVITE_SMTP_USER,
+    INVITE_SMTP_PASS: process.env.INVITE_SMTP_PASS,
+  });
+
+  if (!parsed.success) {
+    throw new Error(
+      "Missing server configuration: INVITE_SMTP_USER and INVITE_SMTP_PASS"
+    );
+  }
+
+  return parsed.data;
+}
+
+export function hasInviteEmailEnv() {
+  return inviteEmailEnvSchema.safeParse({
+    INVITE_SMTP_USER: process.env.INVITE_SMTP_USER,
+    INVITE_SMTP_PASS: process.env.INVITE_SMTP_PASS,
   }).success;
 }
 

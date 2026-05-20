@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
@@ -25,8 +25,38 @@ export function LoginForm() {
     setErrorMessage(null);
 
     const supabase = createClient();
+    const normalizedIdentifier = identifier.trim();
+    const looksLikeEmail = normalizedIdentifier.includes("@");
+
+    let emailToUse = normalizedIdentifier.toLowerCase();
+
+    if (!looksLikeEmail) {
+      const { data: resolvedEmail, error: resolveError } = await supabase.rpc(
+        "resolve_login_email",
+        {
+          p_identifier: normalizedIdentifier,
+        }
+      );
+
+      if (resolveError) {
+        setErrorMessage(
+          "Username sign-in is unavailable right now. Please sign in with your email."
+        );
+        setIsPending(false);
+        return;
+      }
+
+      if (!resolvedEmail) {
+        setErrorMessage("Invalid credentials");
+        setIsPending(false);
+        return;
+      }
+
+      emailToUse = String(resolvedEmail).toLowerCase();
+    }
+
     const { error } = await supabase.auth.signInWithPassword({
-      email,
+      email: emailToUse,
       password,
     });
 
@@ -49,20 +79,20 @@ export function LoginForm() {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <label
-          htmlFor="email"
+          htmlFor="identifier"
           className="font-mono-ui text-[11px] tracking-[0.18em] text-[var(--text-muted)] uppercase"
         >
-          Work email
+          Email or username
         </label>
         <input
-          id="email"
-          type="email"
-          autoComplete="email"
+          id="identifier"
+          type="text"
+          autoComplete="username"
           required
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
+          value={identifier}
+          onChange={(event) => setIdentifier(event.target.value)}
           className="h-11 w-full rounded-xl border border-white/10 bg-white/2 px-3 text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--accent-border)] focus:ring-2 focus:ring-[var(--accent-soft)]"
-          placeholder="analyst@company.com"
+          placeholder="analyst@company.com or analyst_name"
         />
       </div>
 

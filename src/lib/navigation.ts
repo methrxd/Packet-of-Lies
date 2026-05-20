@@ -3,6 +3,7 @@ import {
   BriefcaseBusiness,
   FileSearch,
   FileText,
+  UserRound,
   LayoutDashboard,
   ShieldCheck,
   Upload,
@@ -45,6 +46,12 @@ export const primaryNavigation: AppNavItem[] = [
     label: "Reports",
     description: "Incident summaries",
     icon: FileText,
+  },
+  {
+    href: "/profile",
+    label: "Profile",
+    description: "Account settings",
+    icon: UserRound,
   },
 ];
 

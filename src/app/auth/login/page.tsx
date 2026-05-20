@@ -54,7 +54,7 @@ export default async function LoginPage() {
             Secure workspace sign in
           </CardTitle>
           <CardDescription className="leading-6 text-[var(--text-secondary)]">
-            Sign in with your invited account. If this is your first access,
+            Sign in with your invited account using email or username. If this is your first access,
             you&apos;ll be guided through profile setup before entering the app.
           </CardDescription>
         </CardHeader>

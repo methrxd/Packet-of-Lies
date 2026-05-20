@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { getAuthContext } from "@/lib/auth";
-import { getSiteUrl } from "@/lib/env";
+import { getSiteUrl, hasInviteEmailEnv } from "@/lib/env";
+import { sendInviteEmail } from "@/lib/invite-email";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const roleSchema = z.object({
@@ -127,16 +128,44 @@ export async function inviteUserAction(
   try {
     const admin = createAdminClient();
 
-    const invite = await admin.auth.admin.inviteUserByEmail(email, {
-      redirectTo: `${siteUrl}/auth/complete-profile`,
-      data: {
-        invited_by: auth.userId,
+    const generatedLink = await admin.auth.admin.generateLink({
+      type: "invite",
+      email,
+      options: {
+        redirectTo: `${siteUrl}/auth/complete-profile`,
+        data: {
+          invited_by: auth.userId,
+        },
       },
     });
 
-    if (invite.error) {
-      inviteError = invite.error.message;
+    if (generatedLink.error) {
+      inviteError = generatedLink.error.message;
     } else {
+      const inviteLink = generatedLink.data.properties.action_link;
+
+      if (!inviteLink) {
+        return {
+          status: "error",
+          message: "Invite link generation failed.",
+        };
+      }
+
+      if (!hasInviteEmailEnv()) {
+        return {
+          status: "error",
+          message:
+            "Invite email sender is not configured. Add INVITE_SMTP_USER and INVITE_SMTP_PASS in Vercel and redeploy.",
+        };
+      }
+
+      await sendInviteEmail({
+        to: email,
+        role: parsed.data.role,
+        invitedByEmail: auth.email,
+        inviteLink,
+      });
+
       const roleUpdate = await admin
         .from("profiles")
         .update({

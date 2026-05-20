@@ -8,12 +8,10 @@ import { Command, Sparkles } from "lucide-react";
 import type { AppRole } from "@/lib/auth";
 import { adminNavigation, primaryNavigation } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -167,20 +165,6 @@ export function AppSidebar({
           </SidebarGroup>
         ) : null}
       </SidebarContent>
-
-      <SidebarFooter className="gap-3 px-3 py-4">
-        <div className="flex items-center justify-between rounded-xl border border-white/6 bg-white/2 px-3 py-2">
-          <div className="group-data-[collapsible=icon]:hidden">
-            <p className="font-mono-ui text-[10px] tracking-[0.18em] text-sidebar-foreground/50 uppercase">
-              Runtime
-            </p>
-            <p className="mt-1 text-sm text-sidebar-foreground/80">Next.js + Supabase</p>
-          </div>
-          <Badge className="bg-[var(--accent-soft)] text-primary hover:bg-[var(--accent-soft)]">
-            Ready
-          </Badge>
-        </div>
-      </SidebarFooter>
 
       <SidebarRail />
     </Sidebar>
