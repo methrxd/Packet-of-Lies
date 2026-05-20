@@ -143,13 +143,18 @@ export async function inviteUserAction(
       inviteError = generatedLink.error.message;
     } else {
       const inviteLink = generatedLink.data.properties.action_link;
+      const tokenHash = generatedLink.data.properties.hashed_token;
 
-      if (!inviteLink) {
+      if (!inviteLink || !tokenHash) {
         return {
           status: "error",
           message: "Invite link generation failed.",
         };
       }
+
+      const appInviteLink = `${siteUrl}/auth/confirm?token_hash=${encodeURIComponent(
+        tokenHash
+      )}&type=invite&next=${encodeURIComponent("/auth/complete-profile")}`;
 
       if (!hasInviteEmailEnv()) {
         return {
@@ -163,7 +168,7 @@ export async function inviteUserAction(
         to: email,
         role: parsed.data.role,
         invitedByEmail: auth.email,
-        inviteLink,
+        inviteLink: appInviteLink,
       });
 
       const roleUpdate = await admin
