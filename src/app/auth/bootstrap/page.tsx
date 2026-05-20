@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { LockKeyhole } from "lucide-react";
 
 import { BootstrapForm } from "@/components/auth/bootstrap-form";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { isBootstrapRequired } from "@/lib/bootstrap-state";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -15,12 +15,10 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function BootstrapPage() {
-  const admin = createAdminClient();
-  const { count, error } = await admin
-    .from("profiles")
-    .select("id", { count: "exact", head: true });
-
-  if (error) {
+  let bootstrapRequired = false;
+  try {
+    bootstrapRequired = await isBootstrapRequired();
+  } catch (error) {
     return (
       <main className="relative flex min-h-svh items-center justify-center px-4 py-10">
         <Card className="w-full max-w-md border-white/8 bg-[var(--bg-card)] panel-shadow">
@@ -29,7 +27,9 @@ export default async function BootstrapPage() {
               Bootstrap unavailable
             </CardTitle>
             <CardDescription className="text-[var(--text-secondary)]">
-              {error.message}
+              {error instanceof Error
+                ? error.message
+                : "Unable to determine bootstrap state."}
             </CardDescription>
           </CardHeader>
         </Card>
@@ -37,7 +37,7 @@ export default async function BootstrapPage() {
     );
   }
 
-  if ((count ?? 0) > 0) {
+  if (!bootstrapRequired) {
     redirect("/auth/login");
   }
 
