@@ -5,6 +5,8 @@ import { z } from "zod";
 
 import { avatarPathForUser, validateAvatarFile } from "@/lib/avatar";
 import { getAuthContext } from "@/lib/auth";
+import { isBootstrapRequired } from "@/lib/bootstrap-state";
+import { hasServiceRoleEnv } from "@/lib/env";
 import { validateStrongPassword, validateUsername } from "@/lib/security";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -35,17 +37,8 @@ export type CompleteProfileActionState = {
 };
 
 async function hasAnyAdmin() {
-  const admin = createAdminClient();
-  const { count: adminCount, error: adminCountError } = await admin
-    .from("profiles")
-    .select("id", { count: "exact", head: true })
-    .eq("role", "admin");
-
-  if (adminCountError) {
-    throw new Error(adminCountError.message);
-  }
-
-  return (adminCount ?? 0) > 0;
+  const bootstrapRequired = await isBootstrapRequired();
+  return !bootstrapRequired;
 }
 
 export async function bootstrapFirstAdminAction(
@@ -83,72 +76,125 @@ export async function bootstrapFirstAdminAction(
     };
   }
 
-  const firstAdminExists = await hasAnyAdmin();
-  if (firstAdminExists) {
-    return {
-      status: "error",
-      message: "First admin is already configured. Use normal sign in.",
-    };
-  }
-
-  const avatarInput = formData.get("avatar");
-  const avatarFile =
-    avatarInput instanceof File && avatarInput.size > 0 ? avatarInput : null;
-
-  const admin = createAdminClient();
-  const createdUser = await admin.auth.admin.createUser({
-    email: parsed.data.email.toLowerCase(),
-    password: parsed.data.password,
-    email_confirm: true,
-    user_metadata: {
-      display_name: parsed.data.username,
-    },
-  });
-
-  if (createdUser.error || !createdUser.data.user) {
-    return {
-      status: "error",
-      message: createdUser.error?.message ?? "Failed to create bootstrap admin.",
-    };
-  }
-
-  let avatarPath: string | null = null;
-  if (avatarFile) {
-    const avatarValidation = await validateAvatarFile(avatarFile);
-    if (!avatarValidation.ok) {
-      await admin.auth.admin.deleteUser(createdUser.data.user.id);
-      return { status: "error", message: avatarValidation.message };
+  try {
+    const firstAdminExists = await hasAnyAdmin();
+    if (firstAdminExists) {
+      return {
+        status: "error",
+        message: "First admin is already configured. Use normal sign in.",
+      };
     }
 
-    const bytes = Buffer.from(await avatarFile.arrayBuffer());
-    avatarPath = avatarPathForUser(createdUser.data.user.id, avatarValidation.extension);
+    const avatarInput = formData.get("avatar");
+    const avatarFile =
+      avatarInput instanceof File && avatarInput.size > 0 ? avatarInput : null;
 
-    const upload = await admin.storage.from("profile-avatars").upload(avatarPath, bytes, {
-      contentType: avatarValidation.contentType,
-      upsert: true,
-    });
+    if (hasServiceRoleEnv()) {
+      const admin = createAdminClient();
+      const createdUser = await admin.auth.admin.createUser({
+        email: parsed.data.email.toLowerCase(),
+        password: parsed.data.password,
+        email_confirm: true,
+        user_metadata: {
+          display_name: parsed.data.username,
+        },
+      });
 
-    if (upload.error) {
-      await admin.auth.admin.deleteUser(createdUser.data.user.id);
-      return { status: "error", message: upload.error.message };
+      if (createdUser.error || !createdUser.data.user) {
+        return {
+          status: "error",
+          message:
+            createdUser.error?.message ?? "Failed to create bootstrap admin.",
+        };
+      }
+
+      let avatarPath: string | null = null;
+      if (avatarFile) {
+        const avatarValidation = await validateAvatarFile(avatarFile);
+        if (!avatarValidation.ok) {
+          await admin.auth.admin.deleteUser(createdUser.data.user.id);
+          return { status: "error", message: avatarValidation.message };
+        }
+
+        const bytes = Buffer.from(await avatarFile.arrayBuffer());
+        avatarPath = avatarPathForUser(
+          createdUser.data.user.id,
+          avatarValidation.extension
+        );
+
+        const upload = await admin.storage
+          .from("profile-avatars")
+          .upload(avatarPath, bytes, {
+            contentType: avatarValidation.contentType,
+            upsert: true,
+          });
+
+        if (upload.error) {
+          await admin.auth.admin.deleteUser(createdUser.data.user.id);
+          return { status: "error", message: upload.error.message };
+        }
+      }
+
+      const profileUpdate = await admin
+        .from("profiles")
+        .update({
+          email: parsed.data.email.toLowerCase(),
+          display_name: parsed.data.username,
+          username: parsed.data.username,
+          avatar_path: avatarPath,
+          role: "admin",
+          profile_completed_at: new Date().toISOString(),
+        })
+        .eq("id", createdUser.data.user.id);
+
+      if (profileUpdate.error) {
+        await admin.auth.admin.deleteUser(createdUser.data.user.id);
+        return { status: "error", message: profileUpdate.error.message };
+      }
+    } else {
+      if (avatarFile) {
+        return {
+          status: "error",
+          message:
+            "Profile picture upload during first-admin bootstrap requires SUPABASE_SERVICE_ROLE_KEY. Remove avatar for bootstrap, then add it from profile setup.",
+        };
+      }
+
+      const supabase = await createClient();
+      const { data, error } = await supabase.rpc("bootstrap_create_first_admin", {
+        p_email: parsed.data.email.toLowerCase(),
+        p_password: parsed.data.password,
+        p_username: parsed.data.username,
+      });
+
+      if (error) {
+        const message =
+          error.message === "admin_exists"
+            ? "First admin is already configured. Use normal sign in."
+            : error.message === "email_exists"
+              ? "Email is already registered."
+              : error.message === "invalid_username"
+                ? "Username must be 3-32 characters and use only letters, numbers, or underscores."
+                : error.message === "weak_password"
+                  ? "Password must be at least 12 characters and include uppercase, lowercase, number, and symbol."
+                  : error.message;
+
+        return { status: "error", message };
+      }
+
+      const createdUserId = typeof data === "string" ? data : null;
+      if (!createdUserId) {
+        return {
+          status: "error",
+          message: "Bootstrap user creation returned an invalid response.",
+        };
+      }
     }
-  }
-
-  const profileUpdate = await admin
-    .from("profiles")
-    .update({
-      email: parsed.data.email.toLowerCase(),
-      display_name: parsed.data.username,
-      username: parsed.data.username,
-      avatar_path: avatarPath,
-      role: "admin",
-      profile_completed_at: new Date().toISOString(),
-    })
-    .eq("id", createdUser.data.user.id);
-
-  if (profileUpdate.error) {
-    await admin.auth.admin.deleteUser(createdUser.data.user.id);
-    return { status: "error", message: profileUpdate.error.message };
+  } catch (error) {
+    return {
+      status: "error",
+      message: error instanceof Error ? error.message : "Bootstrap failed.",
+    };
   }
 
   revalidatePath("/auth/bootstrap");
@@ -209,22 +255,36 @@ export async function completeProfileAction(
     if (!avatarValidation.ok) {
       return { status: "error", message: avatarValidation.message };
     }
+    try {
+      const admin = createAdminClient();
+      const bytes = Buffer.from(await avatarFile.arrayBuffer());
+      avatarPath = avatarPathForUser(auth.userId, avatarValidation.extension);
 
-    const admin = createAdminClient();
-    const bytes = Buffer.from(await avatarFile.arrayBuffer());
-    avatarPath = avatarPathForUser(auth.userId, avatarValidation.extension);
+      if (auth.avatarPath) {
+        await admin.storage.from("profile-avatars").remove([auth.avatarPath]);
+      }
 
-    if (auth.avatarPath) {
-      await admin.storage.from("profile-avatars").remove([auth.avatarPath]);
-    }
+      const upload = await admin.storage
+        .from("profile-avatars")
+        .upload(avatarPath, bytes, {
+          contentType: avatarValidation.contentType,
+          upsert: true,
+        });
 
-    const upload = await admin.storage.from("profile-avatars").upload(avatarPath, bytes, {
-      contentType: avatarValidation.contentType,
-      upsert: true,
-    });
-
-    if (upload.error) {
-      return { status: "error", message: upload.error.message };
+      if (upload.error) {
+        return { status: "error", message: upload.error.message };
+      }
+    } catch (error) {
+      return {
+        status: "error",
+        message:
+          error instanceof Error &&
+          error.message.includes("SUPABASE_SERVICE_ROLE_KEY")
+            ? "Server setup missing SUPABASE_SERVICE_ROLE_KEY. Add it in Vercel project environment variables, then redeploy."
+            : error instanceof Error
+              ? error.message
+              : "Avatar upload failed due to server configuration.",
+      };
     }
   }
 

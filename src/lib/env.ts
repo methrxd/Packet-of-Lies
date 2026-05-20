@@ -26,9 +26,17 @@ export function hasSupabaseEnv() {
 }
 
 export function getServiceRoleEnv() {
-  return serviceRoleEnvSchema.parse({
+  const parsed = serviceRoleEnvSchema.safeParse({
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
   });
+
+  if (!parsed.success) {
+    throw new Error(
+      "Missing server configuration: SUPABASE_SERVICE_ROLE_KEY"
+    );
+  }
+
+  return parsed.data;
 }
 
 export function hasServiceRoleEnv() {

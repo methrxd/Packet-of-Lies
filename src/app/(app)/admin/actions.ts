@@ -59,11 +59,26 @@ export async function updateUserRoleAction(
     };
   }
 
-  const admin = createAdminClient();
-  const { error } = await admin
-    .from("profiles")
-    .update({ role: parsed.data.role })
-    .eq("id", parsed.data.userId);
+  let error: { message: string } | null = null;
+  try {
+    const admin = createAdminClient();
+    const result = await admin
+      .from("profiles")
+      .update({ role: parsed.data.role })
+      .eq("id", parsed.data.userId);
+    error = result.error;
+  } catch (caught) {
+    return {
+      status: "error",
+      message:
+        caught instanceof Error &&
+        caught.message.includes("SUPABASE_SERVICE_ROLE_KEY")
+          ? "Server setup missing SUPABASE_SERVICE_ROLE_KEY. Add it in Vercel project environment variables, then redeploy."
+          : caught instanceof Error
+            ? caught.message
+            : "Role update failed due to server configuration.",
+    };
+  }
 
   if (error) {
     return {
@@ -107,35 +122,55 @@ export async function inviteUserAction(
 
   const email = parsed.data.email.toLowerCase();
   const siteUrl = getSiteUrl();
-  const admin = createAdminClient();
+  let inviteError: string | null = null;
+  let roleUpdateError: string | null = null;
+  try {
+    const admin = createAdminClient();
 
-  const invite = await admin.auth.admin.inviteUserByEmail(email, {
-    redirectTo: `${siteUrl}/auth/complete-profile`,
-    data: {
-      invited_by: auth.userId,
-    },
-  });
+    const invite = await admin.auth.admin.inviteUserByEmail(email, {
+      redirectTo: `${siteUrl}/auth/complete-profile`,
+      data: {
+        invited_by: auth.userId,
+      },
+    });
 
-  if (invite.error) {
+    if (invite.error) {
+      inviteError = invite.error.message;
+    } else {
+      const roleUpdate = await admin
+        .from("profiles")
+        .update({
+          role: parsed.data.role,
+          profile_completed_at: null,
+          username: null,
+        })
+        .eq("email", email);
+      roleUpdateError = roleUpdate.error?.message ?? null;
+    }
+  } catch (caught) {
     return {
       status: "error",
-      message: invite.error.message,
+      message:
+        caught instanceof Error &&
+        caught.message.includes("SUPABASE_SERVICE_ROLE_KEY")
+          ? "Server setup missing SUPABASE_SERVICE_ROLE_KEY. Add it in Vercel project environment variables, then redeploy."
+          : caught instanceof Error
+            ? caught.message
+            : "Invite failed due to server configuration.",
     };
   }
 
-  const roleUpdate = await admin
-    .from("profiles")
-    .update({
-      role: parsed.data.role,
-      profile_completed_at: null,
-      username: null,
-    })
-    .eq("email", email);
-
-  if (roleUpdate.error) {
+  if (inviteError) {
     return {
       status: "error",
-      message: roleUpdate.error.message,
+      message: inviteError,
+    };
+  }
+
+  if (roleUpdateError) {
+    return {
+      status: "error",
+      message: roleUpdateError,
     };
   }
 
