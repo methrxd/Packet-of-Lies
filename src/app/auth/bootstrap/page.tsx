@@ -15,26 +15,11 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function BootstrapPage() {
-  let bootstrapRequired = false;
+  let bootstrapRequired = true;
   try {
     bootstrapRequired = await isBootstrapRequired();
-  } catch (error) {
-    return (
-      <main className="relative flex min-h-svh items-center justify-center px-4 py-10">
-        <Card className="w-full max-w-md border-white/8 bg-[var(--bg-card)] panel-shadow">
-          <CardHeader>
-            <CardTitle className="font-heading text-xl text-[var(--state-warning)]">
-              Bootstrap unavailable
-            </CardTitle>
-            <CardDescription className="text-[var(--text-secondary)]">
-              {error instanceof Error
-                ? error.message
-                : "Unable to determine bootstrap state."}
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </main>
-    );
+  } catch {
+    bootstrapRequired = true;
   }
 
   if (!bootstrapRequired) {
@@ -59,8 +44,8 @@ export default async function BootstrapPage() {
             Create the first super admin
           </CardTitle>
           <CardDescription className="leading-6 text-[var(--text-secondary)]">
-            This one-time route is available only before any user exists. After
-            setup, onboarding switches to invite-only.
+            This one-time route is available until an admin account exists.
+            After setup, onboarding switches to invite-only.
           </CardDescription>
         </CardHeader>
         <CardContent>

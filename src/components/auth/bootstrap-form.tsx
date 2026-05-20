@@ -119,22 +119,6 @@ export function BootstrapForm() {
         />
       </div>
 
-      <div className="space-y-2">
-        <label
-          htmlFor="bootstrapCode"
-          className="font-mono-ui text-[11px] tracking-[0.18em] text-[var(--text-muted)] uppercase"
-        >
-          Setup code
-        </label>
-        <input
-          id="bootstrapCode"
-          name="bootstrapCode"
-          type="password"
-          required
-          className="h-11 w-full rounded-xl border border-white/10 bg-white/2 px-3 text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--accent-border)] focus:ring-2 focus:ring-[var(--accent-soft)]"
-        />
-      </div>
-
       {state.status !== "idle" ? (
         <p
           className={

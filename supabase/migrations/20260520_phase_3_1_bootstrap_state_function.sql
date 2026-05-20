@@ -5,7 +5,11 @@ security definer
 set search_path = public, auth
 stable
 as $$
-  select not exists (select 1 from auth.users);
+  select not exists (
+    select 1
+    from public.profiles
+    where role = 'admin'
+  );
 $$;
 
 revoke all on function public.bootstrap_required() from public;

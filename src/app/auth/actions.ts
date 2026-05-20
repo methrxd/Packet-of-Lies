@@ -5,7 +5,6 @@ import { z } from "zod";
 
 import { avatarPathForUser, validateAvatarFile } from "@/lib/avatar";
 import { getAuthContext } from "@/lib/auth";
-import { getBootstrapCode } from "@/lib/env";
 import { validateStrongPassword, validateUsername } from "@/lib/security";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -15,7 +14,6 @@ const bootstrapSchema = z.object({
   email: z.string().trim().email(),
   password: z.string().min(12),
   confirmPassword: z.string().min(12),
-  bootstrapCode: z.string().min(1),
 });
 
 const completeProfileSchema = z.object({
@@ -36,17 +34,18 @@ export type CompleteProfileActionState = {
   message: string;
 };
 
-async function hasAnyUser() {
+async function hasAnyAdmin() {
   const admin = createAdminClient();
-  const { count, error } = await admin
+  const { count: adminCount, error: adminCountError } = await admin
     .from("profiles")
-    .select("id", { count: "exact", head: true });
+    .select("id", { count: "exact", head: true })
+    .eq("role", "admin");
 
-  if (error) {
-    throw new Error(error.message);
+  if (adminCountError) {
+    throw new Error(adminCountError.message);
   }
 
-  return (count ?? 0) > 0;
+  return (adminCount ?? 0) > 0;
 }
 
 export async function bootstrapFirstAdminAction(
@@ -58,7 +57,6 @@ export async function bootstrapFirstAdminAction(
     email: formData.get("email"),
     password: formData.get("password"),
     confirmPassword: formData.get("confirmPassword"),
-    bootstrapCode: formData.get("bootstrapCode"),
   });
 
   if (!parsed.success) {
@@ -85,20 +83,8 @@ export async function bootstrapFirstAdminAction(
     };
   }
 
-  const bootstrapCode = getBootstrapCode();
-  if (!bootstrapCode) {
-    return {
-      status: "error",
-      message: "Bootstrap code is not configured on the server.",
-    };
-  }
-
-  if (parsed.data.bootstrapCode !== bootstrapCode) {
-    return { status: "error", message: "Invalid bootstrap setup code." };
-  }
-
-  const firstUserExists = await hasAnyUser();
-  if (firstUserExists) {
+  const firstAdminExists = await hasAnyAdmin();
+  if (firstAdminExists) {
     return {
       status: "error",
       message: "First admin is already configured. Use normal sign in.",

@@ -16,27 +16,15 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function LoginPage() {
+  let bootstrapRequired = true;
   try {
-    const bootstrapRequired = await isBootstrapRequired();
-    if (bootstrapRequired) {
-      redirect("/auth/bootstrap");
-    }
+    bootstrapRequired = await isBootstrapRequired();
   } catch {
-    return (
-      <main className="relative flex min-h-svh items-center justify-center px-4 py-10">
-        <Card className="w-full max-w-md border-white/8 bg-[var(--bg-card)] panel-shadow">
-          <CardHeader>
-            <CardTitle className="font-heading text-xl text-[var(--state-warning)]">
-              Login temporarily unavailable
-            </CardTitle>
-            <CardDescription className="text-[var(--text-secondary)]">
-              Bootstrap state check failed. Run the latest database migration
-              and reload this page.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </main>
-    );
+    bootstrapRequired = true;
+  }
+
+  if (bootstrapRequired) {
+    redirect("/auth/bootstrap");
   }
 
   const auth = await getAuthContext();
