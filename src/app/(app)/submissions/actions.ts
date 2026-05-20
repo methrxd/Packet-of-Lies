@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { getAuthContext } from "@/lib/auth";
+import { inferIndicatorFromSubmission } from "@/lib/indicators";
 import { createClient } from "@/lib/supabase/server";
 import { submissionTypeOptions } from "@/lib/workflow";
 
@@ -49,16 +50,46 @@ export async function createSubmissionAction(
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.from("submissions").insert({
-    case_id: parsed.data.caseId ?? null,
-    submission_type: parsed.data.submissionType,
-    title: parsed.data.title,
-    description: parsed.data.description ?? null,
-    payload: {
-      value: parsed.data.rawValue,
-    },
-    submitted_by: auth.userId,
-  });
+  const submissionInsert = await supabase
+    .from("submissions")
+    .insert({
+      case_id: parsed.data.caseId ?? null,
+      submission_type: parsed.data.submissionType,
+      title: parsed.data.title,
+      description: parsed.data.description ?? null,
+      payload: {
+        value: parsed.data.rawValue,
+      },
+      submitted_by: auth.userId,
+    })
+    .select("id, case_id, submission_type")
+    .single();
+
+  const error = submissionInsert.error;
+
+  if (!error) {
+    const inferred = inferIndicatorFromSubmission(
+      parsed.data.submissionType,
+      parsed.data.rawValue
+    );
+
+    if (inferred) {
+      await supabase.from("indicators").upsert(
+        {
+          indicator_type: inferred.type,
+          indicator_value: inferred.value,
+          normalized_value: inferred.normalized,
+          source_submission_id: submissionInsert.data.id,
+          source_case_id: submissionInsert.data.case_id,
+          created_by: auth.userId,
+          last_seen_at: new Date().toISOString(),
+        },
+        {
+          onConflict: "indicator_type,normalized_value",
+        }
+      );
+    }
+  }
 
   if (error) {
     return {

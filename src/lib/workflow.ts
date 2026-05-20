@@ -25,7 +25,24 @@ export const submissionTypeOptions = [
   "manual_incident",
 ] as const;
 
+export const indicatorTypeOptions = [
+  "sha256",
+  "domain",
+  "ipv4",
+  "url",
+  "email",
+  "filename",
+] as const;
+
+export const indicatorStatusOptions = [
+  "new",
+  "validated",
+  "false_positive",
+] as const;
+
 export type CaseStatus = (typeof caseStatusOptions)[number];
 export type CaseSeverity = (typeof caseSeverityOptions)[number];
 export type CasePriority = (typeof casePriorityOptions)[number];
 export type SubmissionType = (typeof submissionTypeOptions)[number];
+export type IndicatorType = (typeof indicatorTypeOptions)[number];
+export type IndicatorStatus = (typeof indicatorStatusOptions)[number];

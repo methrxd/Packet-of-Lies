@@ -92,7 +92,10 @@ export default function DashboardPage() {
                 Cases and submissions now persist through Supabase-backed workflows.
               </div>
               <div className="rounded-2xl border border-white/6 bg-white/2 p-4">
-                Admin role management is live with policy-enforced update controls.
+                Roles, permissions, and secure user removal controls are active for admins.
+              </div>
+              <div className="rounded-2xl border border-white/6 bg-white/2 p-4">
+                Indicators and case report generation are now live with persisted records.
               </div>
             </CardContent>
           </Card>
@@ -126,9 +129,9 @@ export default function DashboardPage() {
                 Upcoming work
               </p>
               <ul className="mt-4 space-y-3 text-sm leading-6 text-[var(--text-secondary)]">
-                <li>Indicator extraction and de-duplication</li>
-                <li>Case detail timeline and findings workspace</li>
-                <li>Report generation and export formatting</li>
+                <li>Case detail timeline and assignment workflows</li>
+                <li>Report export formats (PDF and DOCX)</li>
+                <li>Advanced indicator correlation and enrichment</li>
               </ul>
             </div>
           </CardContent>
