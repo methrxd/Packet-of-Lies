@@ -3,47 +3,79 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { getAuthContext } from "@/lib/auth";
+import { getAuthContext, type AuthContext } from "@/lib/auth";
 import { getSiteUrl, hasInviteEmailEnv } from "@/lib/env";
 import { sendInviteEmail } from "@/lib/invite-email";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-const roleSchema = z.object({
+const assignRoleSchema = z.object({
   userId: z.string().uuid(),
-  role: z.enum(["admin", "analyst"]),
+  roleId: z.string().uuid(),
+});
+
+const createRoleSchema = z.object({
+  name: z.string().trim().min(3).max(32),
+  description: z.string().trim().max(140).optional(),
+});
+
+const rolePermissionsSchema = z.object({
+  roleId: z.string().uuid(),
+});
+
+const deleteUserSchema = z.object({
+  userId: z.string().uuid(),
 });
 
 const inviteSchema = z.object({
   email: z.string().trim().email(),
-  role: z.enum(["admin", "analyst"]).default("analyst"),
+  roleId: z.string().uuid(),
 });
 
-export type RoleActionState = {
+export type ActionState = {
   status: "idle" | "success" | "error";
   message: string;
 };
 
-export type InviteActionState = {
-  status: "idle" | "success" | "error";
-  message: string;
-};
+export type RoleActionState = ActionState;
+export type InviteActionState = ActionState;
+
+const ROLE_NAME_REGEX = /^[a-z][a-z0-9_-]{2,31}$/;
+
+async function ensureAdminAccess(): Promise<{ auth: AuthContext } | { error: string }> {
+  const auth = await getAuthContext();
+  if (!auth || auth.role !== "admin") {
+    return { error: "Only admins can perform this action." };
+  }
+
+  return { auth };
+}
+
+async function getRoleById(admin: ReturnType<typeof createAdminClient>, roleId: string) {
+  const roleResult = await admin
+    .from("app_roles")
+    .select("id, name")
+    .eq("id", roleId)
+    .maybeSingle();
+
+  return roleResult;
+}
+
+function accessRoleFromRoleName(roleName: string): "admin" | "analyst" {
+  return roleName === "admin" ? "admin" : "analyst";
+}
 
 export async function updateUserRoleAction(
   _prevState: RoleActionState,
   formData: FormData
 ): Promise<RoleActionState> {
-  const auth = await getAuthContext();
-
-  if (!auth || auth.role !== "admin") {
-    return {
-      status: "error",
-      message: "Only admins can update access roles.",
-    };
+  const access = await ensureAdminAccess();
+  if ("error" in access) {
+    return { status: "error", message: access.error };
   }
 
-  const parsed = roleSchema.safeParse({
+  const parsed = assignRoleSchema.safeParse({
     userId: formData.get("userId"),
-    role: formData.get("role"),
+    roleId: formData.get("roleId"),
   });
 
   if (!parsed.success) {
@@ -53,21 +85,56 @@ export async function updateUserRoleAction(
     };
   }
 
-  if (parsed.data.userId === auth.userId && parsed.data.role !== "admin") {
-    return {
-      status: "error",
-      message: "You cannot remove your own admin role.",
-    };
-  }
-
-  let error: { message: string } | null = null;
   try {
     const admin = createAdminClient();
-    const result = await admin
+    const targetRole = await getRoleById(admin, parsed.data.roleId);
+    if (targetRole.error || !targetRole.data) {
+      return { status: "error", message: "Selected role does not exist." };
+    }
+
+    const targetProfile = await admin
       .from("profiles")
-      .update({ role: parsed.data.role })
+      .select("role")
+      .eq("id", parsed.data.userId)
+      .maybeSingle();
+
+    if (targetProfile.error || !targetProfile.data) {
+      return { status: "error", message: "Target user was not found." };
+    }
+
+    const accessRole = accessRoleFromRoleName(targetRole.data.name);
+
+    if (parsed.data.userId === access.auth.userId && accessRole !== "admin") {
+      return {
+        status: "error",
+        message: "You cannot remove your own admin access.",
+      };
+    }
+
+    if (targetProfile.data.role === "admin" && accessRole !== "admin") {
+      const adminCount = await admin
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("role", "admin");
+      if ((adminCount.count ?? 0) <= 1) {
+        return {
+          status: "error",
+          message: "At least one admin account must remain active.",
+        };
+      }
+    }
+
+    const update = await admin
+      .from("profiles")
+      .update({
+        role_id: targetRole.data.id,
+        role: accessRole,
+      })
       .eq("id", parsed.data.userId);
-    error = result.error;
+
+    if (update.error) {
+      return { status: "error", message: update.error.message };
+    }
   } catch (caught) {
     return {
       status: "error",
@@ -81,13 +148,6 @@ export async function updateUserRoleAction(
     };
   }
 
-  if (error) {
-    return {
-      status: "error",
-      message: error.message,
-    };
-  }
-
   revalidatePath("/admin");
 
   return {
@@ -96,22 +156,248 @@ export async function updateUserRoleAction(
   };
 }
 
+export async function createRoleAction(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const access = await ensureAdminAccess();
+  if ("error" in access) {
+    return { status: "error", message: access.error };
+  }
+
+  const parsed = createRoleSchema.safeParse({
+    name: formData.get("name"),
+    description: formData.get("description") || undefined,
+  });
+
+  if (!parsed.success) {
+    return { status: "error", message: "Invalid role values." };
+  }
+
+  if (!ROLE_NAME_REGEX.test(parsed.data.name)) {
+    return {
+      status: "error",
+      message:
+        "Role name must be 3-32 characters and use lowercase letters, numbers, underscores, or hyphens.",
+    };
+  }
+
+  try {
+    const admin = createAdminClient();
+    const insert = await admin.from("app_roles").insert({
+      name: parsed.data.name,
+      description: parsed.data.description || null,
+      is_system: false,
+    });
+
+    if (insert.error) {
+      if (insert.error.message.toLowerCase().includes("duplicate")) {
+        return { status: "error", message: "A role with that name already exists." };
+      }
+      return { status: "error", message: insert.error.message };
+    }
+  } catch (caught) {
+    return {
+      status: "error",
+      message: caught instanceof Error ? caught.message : "Failed to create role.",
+    };
+  }
+
+  revalidatePath("/admin");
+  return { status: "success", message: "Role created." };
+}
+
+export async function updateRolePermissionsAction(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const access = await ensureAdminAccess();
+  if ("error" in access) {
+    return { status: "error", message: access.error };
+  }
+
+  const parsed = rolePermissionsSchema.safeParse({
+    roleId: formData.get("roleId"),
+  });
+
+  if (!parsed.success) {
+    return { status: "error", message: "Invalid role permission payload." };
+  }
+
+  const selectedPermissionKeys = formData
+    .getAll("permissionKeys")
+    .filter((value): value is string => typeof value === "string");
+
+  try {
+    const admin = createAdminClient();
+
+    const roleResult = await getRoleById(admin, parsed.data.roleId);
+    if (roleResult.error || !roleResult.data) {
+      return { status: "error", message: "Role not found." };
+    }
+
+    const availablePermissions = await admin
+      .from("app_permissions")
+      .select("key");
+
+    if (availablePermissions.error) {
+      return { status: "error", message: availablePermissions.error.message };
+    }
+
+    const validPermissionSet = new Set(
+      (availablePermissions.data ?? []).map((permission) => permission.key)
+    );
+    const invalidKey = selectedPermissionKeys.find(
+      (permissionKey) => !validPermissionSet.has(permissionKey)
+    );
+
+    if (invalidKey) {
+      return {
+        status: "error",
+        message: `Unknown permission: ${invalidKey}`,
+      };
+    }
+
+    const wipeExisting = await admin
+      .from("app_role_permissions")
+      .delete()
+      .eq("role_id", parsed.data.roleId);
+    if (wipeExisting.error) {
+      return { status: "error", message: wipeExisting.error.message };
+    }
+
+    if (selectedPermissionKeys.length > 0) {
+      const insert = await admin.from("app_role_permissions").insert(
+        selectedPermissionKeys.map((permissionKey) => ({
+          role_id: parsed.data.roleId,
+          permission_key: permissionKey,
+        }))
+      );
+      if (insert.error) {
+        return { status: "error", message: insert.error.message };
+      }
+    }
+  } catch (caught) {
+    return {
+      status: "error",
+      message:
+        caught instanceof Error
+          ? caught.message
+          : "Failed to update role permissions.",
+    };
+  }
+
+  revalidatePath("/admin");
+  return { status: "success", message: "Role permissions updated." };
+}
+
+export async function deleteUserAction(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const access = await ensureAdminAccess();
+  if ("error" in access) {
+    return { status: "error", message: access.error };
+  }
+
+  const parsed = deleteUserSchema.safeParse({
+    userId: formData.get("userId"),
+  });
+
+  if (!parsed.success) {
+    return { status: "error", message: "Invalid delete user request." };
+  }
+
+  if (parsed.data.userId === access.auth.userId) {
+    return {
+      status: "error",
+      message: "You cannot delete your own account from this panel.",
+    };
+  }
+
+  try {
+    const admin = createAdminClient();
+
+    const targetProfile = await admin
+      .from("profiles")
+      .select("id, email, role, avatar_path")
+      .eq("id", parsed.data.userId)
+      .maybeSingle();
+
+    if (targetProfile.error || !targetProfile.data) {
+      return { status: "error", message: "User not found." };
+    }
+
+    if (targetProfile.data.role === "admin") {
+      const adminCount = await admin
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("role", "admin");
+      if ((adminCount.count ?? 0) <= 1) {
+        return {
+          status: "error",
+          message: "At least one admin account must remain active.",
+        };
+      }
+    }
+
+    await admin
+      .from("cases")
+      .update({ created_by: access.auth.userId })
+      .eq("created_by", parsed.data.userId);
+
+    await admin
+      .from("submissions")
+      .update({ submitted_by: access.auth.userId })
+      .eq("submitted_by", parsed.data.userId);
+
+    await admin
+      .from("cases")
+      .update({ assigned_to: null })
+      .eq("assigned_to", parsed.data.userId);
+
+    if (targetProfile.data.avatar_path) {
+      await admin.storage
+        .from("profile-avatars")
+        .remove([targetProfile.data.avatar_path]);
+    }
+
+    const deleted = await admin.auth.admin.deleteUser(parsed.data.userId, false);
+
+    if (deleted.error) {
+      const message = deleted.error.message.toLowerCase();
+      if (message.includes("owner of any objects in supabase storage")) {
+        return {
+          status: "error",
+          message:
+            "This user still owns files in Supabase Storage. Remove those files, then retry deletion.",
+        };
+      }
+      return { status: "error", message: deleted.error.message };
+    }
+  } catch (caught) {
+    return {
+      status: "error",
+      message: caught instanceof Error ? caught.message : "Failed to delete user.",
+    };
+  }
+
+  revalidatePath("/admin");
+  return { status: "success", message: "User removed completely." };
+}
+
 export async function inviteUserAction(
   _prevState: InviteActionState,
   formData: FormData
 ): Promise<InviteActionState> {
-  const auth = await getAuthContext();
-
-  if (!auth || auth.role !== "admin") {
-    return {
-      status: "error",
-      message: "Only admins can invite users.",
-    };
+  const access = await ensureAdminAccess();
+  if ("error" in access) {
+    return { status: "error", message: access.error };
   }
 
   const parsed = inviteSchema.safeParse({
     email: formData.get("email"),
-    role: formData.get("role") ?? "analyst",
+    roleId: formData.get("roleId"),
   });
 
   if (!parsed.success) {
@@ -127,6 +413,11 @@ export async function inviteUserAction(
   let roleUpdateError: string | null = null;
   try {
     const admin = createAdminClient();
+    const role = await getRoleById(admin, parsed.data.roleId);
+    if (role.error || !role.data) {
+      return { status: "error", message: "Selected role does not exist." };
+    }
+    const accessRole = accessRoleFromRoleName(role.data.name);
 
     const generatedLink = await admin.auth.admin.generateLink({
       type: "invite",
@@ -134,7 +425,7 @@ export async function inviteUserAction(
       options: {
         redirectTo: `${siteUrl}/auth/complete-profile`,
         data: {
-          invited_by: auth.userId,
+          invited_by: access.auth.userId,
         },
       },
     });
@@ -166,15 +457,16 @@ export async function inviteUserAction(
 
       await sendInviteEmail({
         to: email,
-        role: parsed.data.role,
-        invitedByEmail: auth.email,
+        role: accessRole,
+        invitedByEmail: access.auth.email,
         inviteLink: appInviteLink,
       });
 
       const roleUpdate = await admin
         .from("profiles")
         .update({
-          role: parsed.data.role,
+          role: accessRole,
+          role_id: role.data.id,
           profile_completed_at: null,
           username: null,
         })

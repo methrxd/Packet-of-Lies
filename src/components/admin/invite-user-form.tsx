@@ -4,12 +4,21 @@ import { useActionState } from "react";
 
 import { inviteUserAction, type InviteActionState } from "@/app/(app)/admin/actions";
 
+type InviteRole = {
+  id: string;
+  name: string;
+};
+
+type InviteUserFormProps = {
+  roles: InviteRole[];
+};
+
 const initialState: InviteActionState = {
   status: "idle",
   message: "",
 };
 
-export function InviteUserForm() {
+export function InviteUserForm({ roles }: InviteUserFormProps) {
   const [state, action, isPending] = useActionState(inviteUserAction, initialState);
 
   return (
@@ -24,12 +33,15 @@ export function InviteUserForm() {
         />
 
         <select
-          name="role"
-          defaultValue="analyst"
+          name="roleId"
+          defaultValue={roles.find((role) => role.name === "analyst")?.id ?? roles[0]?.id}
           className="h-10 rounded-xl border border-white/10 bg-[var(--bg-card)] px-3 text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--accent-border)]"
         >
-          <option value="analyst">analyst</option>
-          <option value="admin">admin</option>
+          {roles.map((role) => (
+            <option key={role.id} value={role.id}>
+              {role.name}
+            </option>
+          ))}
         </select>
 
         <button

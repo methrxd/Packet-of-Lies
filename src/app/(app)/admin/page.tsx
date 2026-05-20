@@ -1,6 +1,5 @@
 import { InviteUserForm } from "@/components/admin/invite-user-form";
 import { RoleManagementPanel } from "@/components/admin/role-management-panel";
-import type { AppRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -14,10 +13,39 @@ import { PageHeader } from "@/components/app/page-header";
 
 export default async function AdminPage() {
   const supabase = await createClient();
-  const { data: profiles } = await supabase
-    .from("profiles")
-    .select("id, email, display_name, username, role, profile_completed_at, created_at")
-    .order("created_at", { ascending: false });
+  const [{ data: profiles }, { data: roles }, { data: permissions }, { data: rolePermissionRows }] =
+    await Promise.all([
+      supabase
+        .from("profiles")
+        .select("id, email, display_name, username, role, role_id, profile_completed_at, created_at")
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("app_roles")
+        .select("id, name, description, is_system")
+        .order("name", { ascending: true }),
+      supabase
+        .from("app_permissions")
+        .select("key, label, description")
+        .order("key", { ascending: true }),
+      supabase.from("app_role_permissions").select("role_id, permission_key"),
+    ]);
+
+  const roleMap = new Map((roles ?? []).map((role) => [role.id, role]));
+  const permissionsByRole = new Map<string, string[]>();
+  for (const row of rolePermissionRows ?? []) {
+    const current = permissionsByRole.get(row.role_id) ?? [];
+    current.push(row.permission_key);
+    permissionsByRole.set(row.role_id, current);
+  }
+
+  const roleDefinitions =
+    roles?.map((role) => ({
+      id: role.id,
+      name: role.name,
+      description: role.description,
+      isSystem: role.is_system,
+      permissions: permissionsByRole.get(role.id) ?? [],
+    })) ?? [];
 
   const users =
     profiles?.map((profile) => ({
@@ -25,7 +53,13 @@ export default async function AdminPage() {
       email: profile.email,
       displayName: profile.display_name ?? profile.email.split("@")[0] ?? "analyst",
       username: profile.username,
-      role: (profile.role === "admin" ? "admin" : "analyst") as AppRole,
+      roleName:
+        (profile.role_id ? roleMap.get(profile.role_id)?.name : null) ??
+        (profile.role === "admin" ? "admin" : "analyst"),
+      roleId:
+        profile.role_id ??
+        roles?.find((role) => role.name === (profile.role === "admin" ? "admin" : "analyst"))?.id ??
+        null,
       profileCompletedAt: profile.profile_completed_at,
       createdAt: profile.created_at,
     })) ?? [];
@@ -74,12 +108,12 @@ export default async function AdminPage() {
               className="border-[var(--accent-border)] bg-[var(--accent-soft)] text-primary"
             >
               {
-                users.filter((user) => user.role === "admin").length
+                users.filter((user) => user.roleName === "admin").length
               }{" "}
               admin
             </Badge>
             <Badge variant="outline" className="border-white/10 bg-white/4">
-              {users.filter((user) => user.role === "analyst").length} analyst
+              {users.filter((user) => user.roleName !== "admin").length} non-admin
             </Badge>
             <Badge variant="outline" className="border-white/10 bg-white/4">
               {
@@ -105,7 +139,7 @@ export default async function AdminPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <InviteUserForm />
+          <InviteUserForm roles={roleDefinitions} />
         </CardContent>
       </Card>
 
@@ -119,7 +153,11 @@ export default async function AdminPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <RoleManagementPanel users={users} />
+          <RoleManagementPanel
+            users={users}
+            roles={roleDefinitions}
+            permissions={permissions ?? []}
+          />
         </CardContent>
       </Card>
     </div>

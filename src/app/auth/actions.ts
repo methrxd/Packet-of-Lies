@@ -143,6 +143,9 @@ export async function bootstrapFirstAdminAction(
           username: parsed.data.username,
           avatar_path: avatarPath,
           role: "admin",
+          role_id: (
+            await admin.from("app_roles").select("id").eq("name", "admin").maybeSingle()
+          ).data?.id ?? null,
           profile_completed_at: new Date().toISOString(),
         })
         .eq("id", createdUser.data.user.id);
