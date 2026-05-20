@@ -5,6 +5,11 @@ import { z } from "zod";
 
 import { getAuthContext } from "@/lib/auth";
 import { inferIndicatorFromSubmission } from "@/lib/indicators";
+import {
+  submissionArtifactPath,
+  validateSubmissionFile,
+} from "@/lib/submission-file";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { submissionTypeOptions } from "@/lib/workflow";
 
@@ -13,7 +18,7 @@ const submissionSchema = z.object({
   submissionType: z.enum(submissionTypeOptions),
   title: z.string().min(6, "Submission title must be at least 6 characters."),
   description: z.string().max(1000).optional(),
-  rawValue: z.string().min(2, "Add the primary artifact value."),
+  rawValue: z.string().trim().optional(),
 });
 
 export type SubmissionActionState = {
@@ -39,7 +44,7 @@ export async function createSubmissionAction(
     submissionType: formData.get("submissionType"),
     title: formData.get("title"),
     description: formData.get("description") || undefined,
-    rawValue: formData.get("rawValue"),
+    rawValue: formData.get("rawValue") || undefined,
   });
 
   if (!parsed.success) {
@@ -48,6 +53,27 @@ export async function createSubmissionAction(
       message: parsed.error.issues[0]?.message ?? "Invalid submission payload.",
     };
   }
+
+  const fileInput = formData.get("evidenceFile");
+  const evidenceFile =
+    fileInput instanceof File && fileInput.size > 0 ? fileInput : null;
+
+  if (!evidenceFile) {
+    return {
+      status: "error",
+      message: "Evidence upload is required. Allowed formats: PDF, JPG, JPEG, PNG (max 5 MB).",
+    };
+  }
+
+  const fileValidation = await validateSubmissionFile(evidenceFile);
+  if (!fileValidation.ok) {
+    return { status: "error", message: fileValidation.message };
+  }
+
+  const rawValue =
+    parsed.data.rawValue && parsed.data.rawValue.length >= 2
+      ? parsed.data.rawValue
+      : evidenceFile.name;
 
   const supabase = await createClient();
   const submissionInsert = await supabase
@@ -58,7 +84,7 @@ export async function createSubmissionAction(
       title: parsed.data.title,
       description: parsed.data.description ?? null,
       payload: {
-        value: parsed.data.rawValue,
+        value: rawValue,
       },
       submitted_by: auth.userId,
     })
@@ -68,9 +94,58 @@ export async function createSubmissionAction(
   const error = submissionInsert.error;
 
   if (!error) {
+    try {
+      const admin = createAdminClient();
+      const bytes = Buffer.from(await evidenceFile.arrayBuffer());
+      const artifactPath = submissionArtifactPath(
+        auth.userId,
+        submissionInsert.data.id,
+        fileValidation.extension
+      );
+
+      const upload = await admin.storage
+        .from("submission-artifacts")
+        .upload(artifactPath, bytes, {
+          contentType: fileValidation.contentType,
+          upsert: false,
+        });
+
+      if (upload.error) {
+        await supabase.from("submissions").delete().eq("id", submissionInsert.data.id);
+        return {
+          status: "error",
+          message: upload.error.message,
+        };
+      }
+
+      await supabase
+        .from("submissions")
+        .update({
+          payload: {
+            value: rawValue,
+            artifact: {
+              path: artifactPath,
+              fileName: evidenceFile.name,
+              fileSize: evidenceFile.size,
+              contentType: fileValidation.contentType,
+            },
+          },
+        })
+        .eq("id", submissionInsert.data.id);
+    } catch (caught) {
+      await supabase.from("submissions").delete().eq("id", submissionInsert.data.id);
+      return {
+        status: "error",
+        message:
+          caught instanceof Error
+            ? caught.message
+            : "Failed to upload evidence file.",
+      };
+    }
+
     const inferred = inferIndicatorFromSubmission(
       parsed.data.submissionType,
-      parsed.data.rawValue
+      rawValue
     );
 
     if (inferred) {

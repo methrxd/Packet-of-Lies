@@ -105,18 +105,34 @@ export function CreateSubmissionForm({ caseOptions }: CreateSubmissionFormProps)
 
       <div className="space-y-2">
         <label
+          htmlFor="evidenceFile"
+          className="font-mono-ui text-[11px] tracking-[0.18em] text-[var(--text-muted)] uppercase"
+        >
+          Evidence file (PDF/JPG/PNG, max 5MB)
+        </label>
+        <input
+          id="evidenceFile"
+          name="evidenceFile"
+          type="file"
+          required
+          accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+          className="h-11 w-full rounded-xl border border-white/10 bg-white/2 px-3 py-2 text-sm text-[var(--text-secondary)] file:mr-3 file:rounded-md file:border-0 file:bg-[var(--accent-soft)] file:px-2.5 file:py-1.5 file:text-xs file:font-medium file:text-primary"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <label
           htmlFor="rawValue"
           className="font-mono-ui text-[11px] tracking-[0.18em] text-[var(--text-muted)] uppercase"
         >
-          Primary artifact value
+          Primary artifact value (optional)
         </label>
         <input
           id="rawValue"
           name="rawValue"
           type="text"
-          required
           className="h-11 w-full rounded-xl border border-white/10 bg-white/2 px-3 text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--accent-border)] focus:ring-2 focus:ring-[var(--accent-soft)]"
-          placeholder="sha256, URL, domain, sender, or analyst note"
+          placeholder="sha256, URL, domain, sender, or leave empty to use file name"
         />
       </div>
 

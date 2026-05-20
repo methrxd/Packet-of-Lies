@@ -118,6 +118,16 @@ export default async function SubmissionsPage() {
                 "value" in item.payload
                   ? String(item.payload.value)
                   : "n/a";
+              const artifact =
+                typeof item.payload === "object" &&
+                item.payload !== null &&
+                "artifact" in item.payload &&
+                typeof item.payload.artifact === "object" &&
+                item.payload.artifact !== null
+                  ? item.payload.artifact
+                  : null;
+              const artifactName =
+                artifact && "fileName" in artifact ? String(artifact.fileName) : null;
 
               return (
                 <div
@@ -141,6 +151,11 @@ export default async function SubmissionsPage() {
                   <p className="font-mono-ui mt-2 break-all text-[12px] text-[var(--text-secondary)]">
                     {payloadValue}
                   </p>
+                  {artifactName ? (
+                    <p className="mt-1 text-sm text-[var(--text-muted)]">
+                      Attached file: {artifactName}
+                    </p>
+                  ) : null}
                   <p className="mt-2 text-sm text-[var(--text-muted)]">
                     {linkedCase
                       ? `Linked to ${linkedCase.case_number} (${linkedCase.title})`
@@ -171,7 +186,7 @@ export default async function SubmissionsPage() {
               Submissions are private and visible only to authenticated users.
             </div>
             <div className="rounded-2xl border border-white/6 bg-white/2 p-4 text-sm leading-6 text-[var(--text-secondary)]">
-              Intake values are normalized into typed metadata payloads.
+              Upload accepts only PDF, JPG, JPEG, and PNG files up to 5 MB.
             </div>
             <div className="rounded-2xl border border-white/6 bg-white/2 p-4 text-sm leading-6 text-[var(--text-secondary)]">
               Analysts can attach new evidence to cases during or after triage.
