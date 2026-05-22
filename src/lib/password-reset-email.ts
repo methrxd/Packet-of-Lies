@@ -21,7 +21,7 @@ export async function sendPasswordResetOtpEmail(input: PasswordResetEmailInput) 
   const subject = "Packet of Lies password reset code";
   const html = `
     <div style="font-family: 'Segoe UI', Arial, sans-serif; background:#0e1116; color:#eef2f7; padding:24px; border-radius:12px; border:1px solid #1f2937;">
-      <p style="margin:0 0 10px; font-size:12px; letter-spacing:0.16em; text-transform:uppercase; color:#93c5fd;">Packet of Lies - University Project</p>
+      <p style="margin:0 0 10px; font-size:12px; letter-spacing:0.16em; text-transform:uppercase; color:#93c5fd;">Packet of Lies</p>
       <h1 style="margin:0 0 14px; font-size:22px; color:#ffffff;">Password reset verification code</h1>
       <p style="margin:0 0 14px; line-height:1.6;">
         Use this one-time code to reset your account password:

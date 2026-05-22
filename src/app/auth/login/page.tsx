@@ -1,9 +1,8 @@
 import { redirect } from "next/navigation";
-import { ShieldCheck } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 import { LoginForm } from "@/components/auth/login-form";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAuthContext } from "@/lib/auth";
 import { isBootstrapRequired } from "@/lib/bootstrap-state";
@@ -53,9 +52,12 @@ export default async function LoginPage() {
                   <p className="text-xs text-[var(--text-secondary)]">Secure case workspace</p>
                 </div>
               </div>
-              <Badge variant="outline" className="helix-chip">
-                University project
-              </Badge>
+              <Link
+                href="/"
+                className="inline-flex h-9 items-center justify-center rounded-full border border-white/12 bg-white/4 px-3 text-xs text-[var(--text-secondary)] transition-colors hover:bg-white/8 hover:text-[var(--text-primary)]"
+              >
+                Back to home
+              </Link>
             </div>
           </div>
         </header>
@@ -70,24 +72,29 @@ export default async function LoginPage() {
                 and mitigations
               </h1>
               <p className="helix-copy max-w-2xl">
-                Built for academic incident-response simulation: detection, case tracking, analysis, response, and reporting.
+                Sign in to continue to the investigation workspace, or request access from the landing page.
               </p>
             </div>
           </section>
 
           <Card className="panel-shadow">
           <CardHeader className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Badge variant="outline" className="helix-chip">
-                Secure access
-              </Badge>
-              <ShieldCheck className="size-5 text-primary" />
-            </div>
+            <p className="font-mono-ui text-[11px] tracking-[0.18em] text-[var(--text-muted)] uppercase">
+              Workspace access
+            </p>
             <CardTitle className="text-2xl">Sign in</CardTitle>
-            <CardDescription>Use your assigned account to access the workspace.</CardDescription>
+            <CardDescription>
+              Use your assigned account. Invited users can use the invite email, and approved requests can use a one-time joining code.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <LoginForm />
+            <p className="mt-4 text-xs text-[var(--text-muted)]">
+              Need access?{" "}
+              <Link href="/" className="text-primary underline underline-offset-4">
+                Submit a request
+              </Link>
+            </p>
           </CardContent>
           </Card>
         </div>

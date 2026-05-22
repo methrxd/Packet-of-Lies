@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 
 import { PageHeader } from "@/components/app/page-header";
 import { CreateIndicatorForm } from "@/components/indicators/create-indicator-form";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAuthContext, hasPermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -115,15 +114,15 @@ export default async function IndicatorsPage() {
               return (
                 <div key={item.id} className="helix-card">
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="outline" className={typeBadgeClassMap[item.indicator_type]}>
+                    <span className={`inline-flex rounded-full border px-2 py-1 text-xs ${typeBadgeClassMap[item.indicator_type]}`}>
                       {item.indicator_type}
-                    </Badge>
-                    <Badge variant="outline" className={statusBadgeClassMap[item.status]}>
+                    </span>
+                    <span className={`inline-flex rounded-full border px-2 py-1 text-xs ${statusBadgeClassMap[item.status]}`}>
                       {item.status}
-                    </Badge>
-                    <Badge variant="outline" className="border-white/10 bg-white/4">
+                    </span>
+                    <span className="inline-flex rounded-full border border-white/10 bg-white/4 px-2 py-1 text-xs">
                       {item.confidence}% confidence
-                    </Badge>
+                    </span>
                   </div>
                   <p className="font-mono-ui mt-3 break-all text-sm text-[var(--text-primary)]">
                     {item.indicator_value}
@@ -145,4 +144,3 @@ export default async function IndicatorsPage() {
     </div>
   );
 }
-

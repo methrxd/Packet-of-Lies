@@ -27,7 +27,7 @@ export function PageHeader({
             {actions}
           </div>
         ) : (
-          <span className="helix-chip">Live workspace</span>
+          <span className="text-xs text-[var(--text-muted)]">Workspace</span>
         )}
       </div>
       <div className="relative z-10 mt-6 h-px w-full bg-gradient-to-r from-transparent via-white/12 to-transparent" />
@@ -35,11 +35,6 @@ export function PageHeader({
         <span className="font-mono-ui tracking-[0.14em] uppercase">Operational interface</span>
         <span>Built for evidence-first investigations</span>
       </div>
-      {actions ? null : (
-        <div className="relative z-10 mt-5">
-          <span className="helix-kicker">No pending header actions</span>
-        </div>
-      )}
       <div className="pointer-events-none absolute -top-8 right-8 h-28 w-28 rounded-full border border-[var(--accent-border)] bg-[var(--accent-soft)] blur-xl" />
       <div className="pointer-events-none absolute -bottom-10 left-10 h-24 w-24 rounded-full border border-white/8 bg-white/3 blur-xl" />
     </section>

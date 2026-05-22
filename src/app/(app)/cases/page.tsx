@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 
 import { CreateCaseForm } from "@/components/cases/create-case-form";
 import { PageHeader } from "@/components/app/page-header";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAuthContext, hasPermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -90,15 +89,15 @@ export default async function CasesPage() {
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="outline" className="border-white/10 bg-white/4">
+                  <span className="inline-flex rounded-full border border-white/10 bg-white/4 px-2 py-1 text-xs">
                     {formatStatus(item.status as CaseStatus)}
-                  </Badge>
-                  <Badge variant="outline" className={severityClassMap[item.severity as CaseSeverity]}>
+                  </span>
+                  <span className={`inline-flex rounded-full border px-2 py-1 text-xs ${severityClassMap[item.severity as CaseSeverity]}`}>
                     {item.severity}
-                  </Badge>
-                  <Badge variant="outline" className={priorityClassMap[item.priority as CasePriority]}>
+                  </span>
+                  <span className={`inline-flex rounded-full border px-2 py-1 text-xs ${priorityClassMap[item.priority as CasePriority]}`}>
                     {item.priority}
-                  </Badge>
+                  </span>
                   <Link
                     href={`/cases/${item.id}`}
                     className="inline-flex h-9 items-center justify-center rounded-full border border-white/12 bg-[color:rgba(255,255,255,0.03)] px-4 text-xs text-[var(--text-primary)] transition-colors hover:bg-[color:rgba(255,255,255,0.08)]"
@@ -114,4 +113,3 @@ export default async function CasesPage() {
     </div>
   );
 }
-

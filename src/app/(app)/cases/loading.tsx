@@ -4,11 +4,12 @@ export default function CasesLoading() {
       <div className="helix-shell w-full max-w-3xl p-6">
         <div className="helix-grid-lines opacity-20" />
         <div className="relative z-10 space-y-4">
-          <p className="helix-kicker">Loading caseboard</p>
+          <p className="helix-kicker">Loading cases</p>
           <h2 className="helix-headline text-2xl md:text-3xl">Fetching investigation queue</h2>
-          <p className="helix-copy">Syncing case records…</p>
+          <p className="helix-copy">Please wait while case records are loaded.</p>
         </div>
       </div>
     </div>
   );
 }
+

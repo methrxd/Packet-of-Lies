@@ -2,7 +2,6 @@ import Link from "next/link";
 import { Lock } from "lucide-react";
 
 import { SignOutButton } from "@/components/auth/sign-out-button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function AccessDeniedPage() {
@@ -12,12 +11,9 @@ export default function AccessDeniedPage() {
       <Card className="relative z-10 w-full max-w-4xl">
         <CardContent className="p-5 lg:p-7">
           <div className="space-y-4">
-            <Badge
-              variant="outline"
-              className="w-fit border-[color:rgba(255,184,0,0.32)] bg-[color:rgba(255,184,0,0.1)] font-mono-ui text-[10px] tracking-[0.18em] text-[var(--state-warning)] uppercase"
-            >
+            <p className="font-mono-ui text-[11px] tracking-[0.18em] text-[var(--state-warning)] uppercase">
               Access denied
-            </Badge>
+            </p>
             <CardHeader className="px-0">
               <CardTitle className="flex items-center gap-2 text-3xl">
                 <Lock className="size-5 text-[var(--state-warning)]" />

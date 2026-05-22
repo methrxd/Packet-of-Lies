@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 
 import { PageHeader } from "@/components/app/page-header";
 import { GenerateReportForm } from "@/components/reports/generate-report-form";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAuthContext, hasPermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -101,16 +100,13 @@ export default async function ReportsPage() {
                 <div key={report.id} className="helix-card space-y-3">
                   <div className="flex flex-wrap items-center gap-2">
                     {linkedCase ? (
-                      <Badge
-                        variant="outline"
-                        className="border-[var(--accent-border)] bg-[var(--accent-soft)] text-primary"
-                      >
+                      <span className="inline-flex rounded-full border border-[var(--accent-border)] bg-[var(--accent-soft)] px-2 py-1 text-xs text-primary">
                         {linkedCase.case_number}
-                      </Badge>
+                      </span>
                     ) : null}
-                    <Badge variant="outline" className="border-white/10 bg-white/4">
+                    <span className="inline-flex rounded-full border border-white/10 bg-white/4 px-2 py-1 text-xs">
                       {new Date(report.generated_at).toLocaleString()}
-                    </Badge>
+                    </span>
                   </div>
                   <p className="text-base font-medium text-[var(--text-primary)]">{report.title}</p>
                   <p className="text-sm leading-6 text-[var(--text-secondary)]">{report.summary}</p>
@@ -124,4 +120,3 @@ export default async function ReportsPage() {
     </div>
   );
 }
-

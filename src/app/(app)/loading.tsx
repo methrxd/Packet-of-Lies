@@ -5,10 +5,11 @@ export default function AppLoading() {
         <div className="helix-grid-lines opacity-20" />
         <div className="relative z-10 space-y-5">
           <p className="helix-kicker">Loading workspace</p>
-          <h2 className="helix-headline text-2xl md:text-3xl">Preparing live investigation data</h2>
-          <p className="helix-copy">Loading data and preparing your workspace…</p>
+          <h2 className="helix-headline text-2xl md:text-3xl">Preparing your dashboard</h2>
+          <p className="helix-copy">Please wait while we load your latest case data.</p>
         </div>
       </div>
     </div>
   );
 }
+

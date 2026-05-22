@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { LockKeyhole } from "lucide-react";
 
 import { BootstrapForm } from "@/components/auth/bootstrap-form";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { isBootstrapRequired } from "@/lib/bootstrap-state";
 
@@ -27,9 +26,9 @@ export default async function BootstrapPage() {
         <section className="helix-shell p-6 md:p-8">
           <div className="helix-grid-lines opacity-20" />
           <div className="relative z-10 space-y-5">
-            <Badge variant="outline" className="helix-chip">
+            <p className="font-mono-ui text-[11px] tracking-[0.18em] text-[var(--text-muted)] uppercase">
               Bootstrap
-            </Badge>
+            </p>
             <h1 className="helix-headline">Initialize the first administrator</h1>
             <p className="helix-copy">
               One-time setup to create the initial admin identity and unlock workspace access.
@@ -40,9 +39,9 @@ export default async function BootstrapPage() {
         <Card className="panel-shadow">
           <CardHeader>
             <div className="mb-3 flex items-center justify-between">
-              <Badge variant="outline" className="helix-chip">
+              <p className="font-mono-ui text-[11px] tracking-[0.18em] text-[var(--text-muted)] uppercase">
                 Account setup
-              </Badge>
+              </p>
               <LockKeyhole className="size-5 text-primary" />
             </div>
             <CardTitle>Create administrator account</CardTitle>

@@ -1,12 +1,14 @@
 import { InviteUserForm } from "@/components/admin/invite-user-form";
 import { RoleManagementPanel } from "@/components/admin/role-management-panel";
+import { AccessRequestsPanel } from "@/components/admin/access-requests-panel";
 import { PageHeader } from "@/components/app/page-header";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function AdminPage() {
   const supabase = await createClient();
+  const adminSupabase = createAdminClient();
   const [{ data: profiles }, { data: roles }, { data: permissions }, { data: rolePermissionRows }] =
     await Promise.all([
       supabase
@@ -17,6 +19,13 @@ export default async function AdminPage() {
       supabase.from("app_permissions").select("key, label, description").order("key", { ascending: true }),
       supabase.from("app_role_permissions").select("role_id, permission_key"),
     ]);
+
+  const { data: accessRequests } = await adminSupabase
+    .from("access_requests")
+    .select("id, email, full_name, organization, message, status, requested_at")
+    .eq("status", "pending")
+    .order("requested_at", { ascending: true })
+    .limit(50);
 
   const roleMap = new Map((roles ?? []).map((role) => [role.id, role]));
   const permissionsByRole = new Map<string, string[]>();
@@ -33,6 +42,17 @@ export default async function AdminPage() {
       description: role.description,
       isSystem: role.is_system,
       permissions: permissionsByRole.get(role.id) ?? [],
+    })) ?? [];
+
+  const pendingRequests =
+    accessRequests?.map((request) => ({
+      id: request.id,
+      email: request.email,
+      fullName: request.full_name,
+      organization: request.organization,
+      message: request.message,
+      status: request.status as "pending" | "approved" | "rejected",
+      requestedAt: request.requested_at,
     })) ?? [];
 
   const users =
@@ -80,13 +100,19 @@ export default async function AdminPage() {
             <CardDescription className="helix-kicker">Admins</CardDescription>
             <CardTitle>{users.filter((user) => user.roleName === "admin").length}</CardTitle>
           </CardHeader>
-          <CardContent>
-            <Badge variant="outline" className="border-white/10 bg-white/4">
-              Keep at least one active admin
-            </Badge>
-          </CardContent>
+          <CardContent className="text-xs text-[var(--text-muted)]">Keep at least one active admin</CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardDescription className="helix-kicker">Request access</CardDescription>
+          <CardTitle>Pending approvals</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <AccessRequestsPanel requests={pendingRequests} roles={roleDefinitions} />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -110,4 +136,3 @@ export default async function AdminPage() {
     </div>
   );
 }
-

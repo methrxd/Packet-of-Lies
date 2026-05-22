@@ -11,7 +11,6 @@ import {
   CaseMitigationForm,
   CaseStatusForm,
 } from "@/components/cases/case-detail-forms";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/client";
 import type { CaseStatus, MitigationStatus } from "@/lib/workflow";
@@ -484,15 +483,15 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
               <span className="text-[var(--text-muted)]">Assigned to:</span> {assignedToLabel}
             </p>
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="outline" className="border-white/10 bg-white/4">
+              <span className="inline-flex rounded-full border border-white/10 bg-white/4 px-2 py-1 text-xs">
                 {snapshot.caseRecord.status}
-              </Badge>
-              <Badge variant="outline" className="border-white/10 bg-white/4">
+              </span>
+              <span className="inline-flex rounded-full border border-white/10 bg-white/4 px-2 py-1 text-xs">
                 {snapshot.caseRecord.severity}
-              </Badge>
-              <Badge variant="outline" className="border-white/10 bg-white/4">
+              </span>
+              <span className="inline-flex rounded-full border border-white/10 bg-white/4 px-2 py-1 text-xs">
                 {snapshot.caseRecord.priority}
-              </Badge>
+              </span>
             </div>
             <p>
               <span className="text-[var(--text-muted)]">Last updated:</span>{" "}
@@ -566,9 +565,9 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
                 <div key={mitigation.id} className="helix-card">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium text-[var(--text-primary)]">{mitigation.title}</p>
-                    <Badge variant="outline" className="border-white/10 bg-white/4">
+                    <span className="inline-flex rounded-full border border-white/10 bg-white/4 px-2 py-1 text-xs">
                       {mitigation.status}
-                    </Badge>
+                    </span>
                   </div>
                   <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">{mitigation.detail}</p>
                   {mitigation.document_name ? (
@@ -637,8 +636,8 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
                   No activity logged yet.
                 </p>
               ) : null}
-              <div className="space-y-2">
-                {activity.activityLog.map((entry) => (
+            <div className="space-y-2">
+              {activity.activityLog.map((entry) => (
                   <div
                     key={entry.id}
                     className="rounded-lg border border-[color:rgba(2,249,109,0.25)] bg-[color:rgba(3,13,8,0.75)] px-3 py-2"
@@ -676,15 +675,15 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
           {snapshot.indicators.map((item) => (
             <div key={item.id} className="helix-card">
               <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="outline" className="border-white/10 bg-white/4">
+                <span className="inline-flex rounded-full border border-white/10 bg-white/4 px-2 py-1 text-xs">
                   {item.indicator_type}
-                </Badge>
-                <Badge variant="outline" className="border-white/10 bg-white/4">
+                </span>
+                <span className="inline-flex rounded-full border border-white/10 bg-white/4 px-2 py-1 text-xs">
                   {item.status}
-                </Badge>
-                <Badge variant="outline" className="border-white/10 bg-white/4">
+                </span>
+                <span className="inline-flex rounded-full border border-white/10 bg-white/4 px-2 py-1 text-xs">
                   {item.confidence}% confidence
-                </Badge>
+                </span>
               </div>
               <p className="font-mono-ui mt-2 break-all text-xs text-[var(--text-secondary)]">
                 {item.indicator_value}

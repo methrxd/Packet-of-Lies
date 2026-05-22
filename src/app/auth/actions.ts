@@ -40,6 +40,18 @@ const resetWithOtpSchema = z.object({
   confirmPassword: z.string().min(12),
 });
 
+const joinWithCodeSchema = z.object({
+  email: z.string().trim().email(),
+  joinCode: z
+    .string()
+    .trim()
+    .min(6)
+    .max(24),
+  username: z.string().trim().min(3).max(32),
+  password: z.string().min(12),
+  confirmPassword: z.string().min(12),
+});
+
 type ActionStatus = "idle" | "success" | "error";
 
 export type BootstrapActionState = {
@@ -59,6 +71,7 @@ export type PasswordResetActionState = {
 
 const OTP_TTL_MINUTES = 10;
 const OTP_MAX_ATTEMPTS = 5;
+const JOIN_CODE_TTL_HOURS = 48;
 
 function resolveOtpSecret() {
   return (
@@ -74,6 +87,18 @@ function hashOtpCode(code: string) {
 
 function createOtpCode() {
   return String(randomInt(0, 1_000_000)).padStart(6, "0");
+}
+
+function normalizeJoinCode(value: string) {
+  return value.replaceAll("-", "").replaceAll(" ", "").toUpperCase();
+}
+
+function hashJoinCode(code: string) {
+  const joinSecret =
+    process.env.ACCESS_REQUEST_JOIN_CODE_SECRET ?? resolveOtpSecret();
+  return createHash("sha256")
+    .update(`${normalizeJoinCode(code)}:${joinSecret}`)
+    .digest("hex");
 }
 
 async function resolveIdentifierProfile(identifier: string) {
@@ -589,6 +614,185 @@ export async function resetPasswordWithOtpAction(
         error instanceof Error
           ? error.message
           : "Could not reset password right now. Please try again.",
+    };
+  }
+}
+
+export async function completeAccessRequestJoinAction(
+  _prevState: PasswordResetActionState,
+  formData: FormData
+): Promise<PasswordResetActionState> {
+  const parsed = joinWithCodeSchema.safeParse({
+    email: formData.get("email"),
+    joinCode: formData.get("joinCode"),
+    username: formData.get("username"),
+    password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
+  });
+
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: parsed.error.issues[0]?.message ?? "Invalid join request payload.",
+    };
+  }
+
+  if (parsed.data.password !== parsed.data.confirmPassword) {
+    return { status: "error", message: "Passwords do not match." };
+  }
+
+  if (!validateUsername(parsed.data.username)) {
+    return {
+      status: "error",
+      message:
+        "Username must be 3-32 characters and use only letters, numbers, or underscores.",
+    };
+  }
+
+  if (!validateStrongPassword(parsed.data.password)) {
+    return {
+      status: "error",
+      message:
+        "Password must be at least 12 characters and include uppercase, lowercase, number, and symbol.",
+    };
+  }
+
+  if (!hasServiceRoleEnv()) {
+    return {
+      status: "error",
+      message: "Join by code is unavailable right now. Contact an administrator.",
+    };
+  }
+
+  try {
+    const admin = createAdminClient();
+    const email = parsed.data.email.toLowerCase();
+    const nowIso = new Date().toISOString();
+
+    const requestResult = await admin
+      .from("access_requests")
+      .select(
+        "id, email, status, approved_role_id, join_code_hash, join_code_expires_at, join_code_consumed_at"
+      )
+      .eq("email", email)
+      .eq("status", "approved")
+      .order("reviewed_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (requestResult.error || !requestResult.data) {
+      return {
+        status: "error",
+        message: "No approved request was found for this email.",
+      };
+    }
+
+    if (requestResult.data.join_code_consumed_at) {
+      return {
+        status: "error",
+        message: "This joining code was already used.",
+      };
+    }
+
+    if (
+      !requestResult.data.join_code_hash ||
+      !requestResult.data.join_code_expires_at ||
+      new Date(requestResult.data.join_code_expires_at).getTime() < Date.now()
+    ) {
+      return {
+        status: "error",
+        message: `This joining code has expired. Ask the admin to approve again (valid ${JOIN_CODE_TTL_HOURS} hours).`,
+      };
+    }
+
+    const submittedHash = hashJoinCode(parsed.data.joinCode);
+    if (submittedHash !== requestResult.data.join_code_hash) {
+      return { status: "error", message: "Invalid joining code." };
+    }
+
+    const existingProfile = await admin
+      .from("profiles")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+    if (existingProfile.data?.id) {
+      return {
+        status: "error",
+        message: "An account for this email already exists. Use Sign in instead.",
+      };
+    }
+
+    const roleId = requestResult.data.approved_role_id;
+    const roleResult =
+      roleId
+        ? await admin.from("app_roles").select("id, name").eq("id", roleId).maybeSingle()
+        : await admin.from("app_roles").select("id, name").eq("name", "analyst").maybeSingle();
+
+    if (roleResult.error || !roleResult.data) {
+      return {
+        status: "error",
+        message: "Assigned role was not found. Ask admin to review this request again.",
+      };
+    }
+
+    const createdUser = await admin.auth.admin.createUser({
+      email,
+      password: parsed.data.password,
+      email_confirm: true,
+      user_metadata: {
+        display_name: parsed.data.username,
+      },
+    });
+
+    if (createdUser.error || !createdUser.data.user) {
+      return {
+        status: "error",
+        message: createdUser.error?.message ?? "Failed to create account.",
+      };
+    }
+
+    const profileUpdate = await admin
+      .from("profiles")
+      .update({
+        email,
+        display_name: parsed.data.username,
+        username: parsed.data.username,
+        role: roleResult.data.name === "admin" ? "admin" : "analyst",
+        role_id: roleResult.data.id,
+        profile_completed_at: nowIso,
+      })
+      .eq("id", createdUser.data.user.id);
+
+    if (profileUpdate.error) {
+      await admin.auth.admin.deleteUser(createdUser.data.user.id);
+      return { status: "error", message: profileUpdate.error.message };
+    }
+
+    const markConsumed = await admin
+      .from("access_requests")
+      .update({
+        join_code_consumed_at: nowIso,
+        joined_user_id: createdUser.data.user.id,
+      })
+      .eq("id", requestResult.data.id);
+
+    if (markConsumed.error) {
+      await admin.auth.admin.deleteUser(createdUser.data.user.id);
+      return { status: "error", message: markConsumed.error.message };
+    }
+
+    revalidatePath("/auth/login");
+    return {
+      status: "success",
+      message: "Account created. You can now sign in with your email and password.",
+    };
+  } catch (error) {
+    return {
+      status: "error",
+      message:
+        error instanceof Error
+          ? error.message
+          : "Could not create account from joining code.",
     };
   }
 }

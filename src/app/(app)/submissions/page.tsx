@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 
 import { PageHeader } from "@/components/app/page-header";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAuthContext, hasPermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -94,14 +93,14 @@ export default async function SubmissionsPage() {
               artifact && "fileName" in artifact ? String(artifact.fileName) : null;
 
             return (
-              <div key={item.id} className="helix-card">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="outline" className={typeClassMap[item.submission_type]}>
+                <div key={item.id} className="helix-card">
+                  <div className="flex flex-wrap items-center gap-2">
+                  <span className={`inline-flex rounded-full border px-2 py-1 text-xs ${typeClassMap[item.submission_type]}`}>
                     {item.submission_type}
-                  </Badge>
-                  <Badge variant="outline" className="border-white/10 bg-white/4">
+                  </span>
+                  <span className="inline-flex rounded-full border border-white/10 bg-white/4 px-2 py-1 text-xs">
                     {item.validation_state}
-                  </Badge>
+                  </span>
                 </div>
                 <p className="mt-3 text-base font-medium text-[var(--text-primary)]">{item.title}</p>
                 <p className="font-mono-ui mt-2 break-all text-[12px] text-[var(--text-secondary)]">
@@ -126,4 +125,3 @@ export default async function SubmissionsPage() {
     </div>
   );
 }
-

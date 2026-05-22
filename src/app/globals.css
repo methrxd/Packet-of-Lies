@@ -233,15 +233,6 @@
     @apply text-sm leading-7 text-[var(--text-secondary)] md:text-[15px];
   }
 
-  .helix-chip {
-    @apply inline-flex items-center rounded-full border px-3 py-1 text-[10px] tracking-[0.14em] uppercase;
-    font-family:
-      "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;
-    border-color: rgba(2, 249, 109, 0.25);
-    background: rgba(2, 249, 109, 0.08);
-    color: var(--accent-primary);
-  }
-
   .helix-rail-label {
     @apply text-[11px] tracking-[0.16em] uppercase;
     font-family:

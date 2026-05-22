@@ -2,7 +2,6 @@ import Link from "next/link";
 import { ArrowUpRight, Radar, ShieldCheck, Sparkles, Workflow } from "lucide-react";
 
 import { PageHeader } from "@/components/app/page-header";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
@@ -122,9 +121,9 @@ export default async function DashboardPage() {
                     Updated {new Date(item.updated_at).toLocaleString()}
                   </p>
                 </div>
-                <Badge variant="outline" className={statusClass[item.status]}>
+                <span className={`inline-flex rounded-full border px-2 py-1 text-xs ${statusClass[item.status]}`}>
                   {item.status}
-                </Badge>
+                </span>
               </Link>
             ))}
           </CardContent>

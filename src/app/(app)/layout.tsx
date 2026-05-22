@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 
 import { AppHeader } from "@/components/app/app-header";
+import { IdleSessionGuard } from "@/components/app/idle-session-guard";
 import { getAuthContext } from "@/lib/auth";
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
@@ -17,6 +18,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-svh bg-transparent">
+      <IdleSessionGuard />
       <AppHeader
         role={auth.role}
         permissions={auth.permissions}

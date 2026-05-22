@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useActionState, useState } from "react";
 
 import {
+  completeAccessRequestJoinAction,
   requestPasswordResetOtpAction,
   resetPasswordWithOtpAction,
   type PasswordResetActionState,
@@ -16,7 +17,7 @@ const initialResetState: PasswordResetActionState = {
   message: "",
 };
 
-type AuthMode = "signin" | "reset";
+type AuthMode = "signin" | "join" | "reset";
 
 export function LoginForm() {
   const router = useRouter();
@@ -33,6 +34,10 @@ export function LoginForm() {
   );
   const [resetState, resetAction, resetPending] = useActionState(
     resetPasswordWithOtpAction,
+    initialResetState
+  );
+  const [joinState, joinAction, joinPending] = useActionState(
+    completeAccessRequestJoinAction,
     initialResetState
   );
   const [resetIdentifier, setResetIdentifier] = useState("");
@@ -100,7 +105,7 @@ export function LoginForm() {
 
   return (
     <div className="space-y-5">
-      <div className="grid grid-cols-2 gap-2 rounded-xl border border-white/8 bg-white/2 p-1">
+      <div className="grid grid-cols-3 gap-2 rounded-xl border border-white/8 bg-white/2 p-1">
         <button
           type="button"
           onClick={() => setMode("signin")}
@@ -111,6 +116,17 @@ export function LoginForm() {
           }`}
         >
           Sign in
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode("join")}
+          className={`h-9 rounded-lg text-sm font-medium transition-colors ${
+            mode === "join"
+              ? "bg-[var(--accent-soft)] text-primary"
+              : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+          }`}
+        >
+          Join with code
         </button>
         <button
           type="button"
@@ -142,7 +158,7 @@ export function LoginForm() {
               value={identifier}
               onChange={(event) => setIdentifier(event.target.value)}
               className="h-11 w-full rounded-xl border border-white/10 bg-white/2 px-3 text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--accent-border)] focus:ring-2 focus:ring-[var(--accent-soft)]"
-              placeholder="e.g. venkat@university.edu or methrxd"
+              placeholder="name@company.com or username"
             />
           </div>
 
@@ -178,6 +194,118 @@ export function LoginForm() {
           >
             <ShieldCheck className="size-4" />
             {isPending ? "Signing in..." : "Sign in to case workspace"}
+          </button>
+        </form>
+      ) : mode === "join" ? (
+        <form action={joinAction} className="space-y-4">
+          <p className="text-sm text-[var(--text-secondary)]">
+            For approved access requests. Use the email and one-time joining code sent by admin.
+          </p>
+          <div className="space-y-2">
+            <label
+              htmlFor="joinEmail"
+              className="font-mono-ui text-[11px] tracking-[0.18em] text-[var(--text-muted)] uppercase"
+            >
+              Approved email
+            </label>
+            <input
+              id="joinEmail"
+              name="email"
+              type="email"
+              required
+              defaultValue={identifier}
+              onChange={(event) => setIdentifier(event.target.value)}
+              className="h-11 w-full rounded-xl border border-white/10 bg-white/2 px-3 text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--accent-border)] focus:ring-2 focus:ring-[var(--accent-soft)]"
+              placeholder="name@organization.com"
+            />
+          </div>
+          <div className="space-y-2">
+            <label
+              htmlFor="joinCode"
+              className="font-mono-ui text-[11px] tracking-[0.18em] text-[var(--text-muted)] uppercase"
+            >
+              One-time joining code
+            </label>
+            <input
+              id="joinCode"
+              name="joinCode"
+              required
+              className="h-11 w-full rounded-xl border border-white/10 bg-white/2 px-3 text-sm tracking-[0.16em] text-[var(--text-primary)] uppercase outline-none transition-colors focus:border-[var(--accent-border)] focus:ring-2 focus:ring-[var(--accent-soft)]"
+              placeholder="ABCDE-12345"
+            />
+          </div>
+          <div className="space-y-2">
+            <label
+              htmlFor="joinUsername"
+              className="font-mono-ui text-[11px] tracking-[0.18em] text-[var(--text-muted)] uppercase"
+            >
+              Username
+            </label>
+            <input
+              id="joinUsername"
+              name="username"
+              required
+              minLength={3}
+              maxLength={32}
+              className="h-11 w-full rounded-xl border border-white/10 bg-white/2 px-3 text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--accent-border)] focus:ring-2 focus:ring-[var(--accent-soft)]"
+              placeholder="Choose a username"
+            />
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <label
+                htmlFor="joinPassword"
+                className="font-mono-ui text-[11px] tracking-[0.18em] text-[var(--text-muted)] uppercase"
+              >
+                Password
+              </label>
+              <input
+                id="joinPassword"
+                name="password"
+                type="password"
+                required
+                minLength={12}
+                className="h-11 w-full rounded-xl border border-white/10 bg-white/2 px-3 text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--accent-border)] focus:ring-2 focus:ring-[var(--accent-soft)]"
+                placeholder="Minimum 12 characters"
+              />
+            </div>
+            <div className="space-y-2">
+              <label
+                htmlFor="joinConfirmPassword"
+                className="font-mono-ui text-[11px] tracking-[0.18em] text-[var(--text-muted)] uppercase"
+              >
+                Confirm password
+              </label>
+              <input
+                id="joinConfirmPassword"
+                name="confirmPassword"
+                type="password"
+                required
+                minLength={12}
+                className="h-11 w-full rounded-xl border border-white/10 bg-white/2 px-3 text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--accent-border)] focus:ring-2 focus:ring-[var(--accent-soft)]"
+                placeholder="Re-enter password"
+              />
+            </div>
+          </div>
+
+          {joinState.status !== "idle" ? (
+            <p
+              className={
+                joinState.status === "success"
+                  ? "rounded-xl border border-[var(--accent-border)] bg-[var(--accent-soft)] px-3 py-2 text-sm text-primary"
+                  : "rounded-xl border border-[color:rgba(255,57,57,0.32)] bg-[color:rgba(255,57,57,0.12)] px-3 py-2 text-sm text-[var(--state-critical)]"
+              }
+            >
+              {joinState.message}
+            </p>
+          ) : null}
+
+          <button
+            type="submit"
+            disabled={joinPending}
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-[var(--accent-border)] bg-[var(--accent-soft)] font-medium text-primary transition-colors hover:bg-[color:rgba(2,249,109,0.14)] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {joinPending ? "Creating account..." : "Create account with join code"}
           </button>
         </form>
       ) : (

@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { UserRoundCheck } from "lucide-react";
 
 import { CompleteProfileForm } from "@/components/auth/complete-profile-form";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
 
@@ -38,9 +37,9 @@ export default async function CompleteProfilePage() {
         <section className="helix-shell p-6 md:p-8">
           <div className="helix-grid-lines opacity-20" />
           <div className="relative z-10 space-y-5">
-            <Badge variant="outline" className="helix-chip">
+            <p className="font-mono-ui text-[11px] tracking-[0.18em] text-[var(--text-muted)] uppercase">
               Profile completion
-            </Badge>
+            </p>
             <h1 className="helix-headline">Finalize your analyst profile</h1>
             <p className="helix-copy">
               Set your username and credentials before entering the investigation workspace.
@@ -51,9 +50,9 @@ export default async function CompleteProfilePage() {
         <Card className="panel-shadow">
           <CardHeader>
             <div className="mb-3 flex items-center justify-between">
-              <Badge variant="outline" className="helix-chip">
+              <p className="font-mono-ui text-[11px] tracking-[0.18em] text-[var(--text-muted)] uppercase">
                 Complete account
-              </Badge>
+              </p>
               <UserRoundCheck className="size-5 text-primary" />
             </div>
             <CardTitle>Set profile details</CardTitle>

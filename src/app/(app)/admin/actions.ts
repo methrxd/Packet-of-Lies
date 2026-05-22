@@ -1,8 +1,10 @@
 "use server";
 
+import { createHash, randomBytes } from "crypto";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { sendAccessApprovedEmail } from "@/lib/access-request-email";
 import { getAuthContext, type AuthContext } from "@/lib/auth";
 import { getSiteUrl, hasInviteEmailEnv } from "@/lib/env";
 import { sendInviteEmail } from "@/lib/invite-email";
@@ -31,6 +33,17 @@ const inviteSchema = z.object({
   roleId: z.string().uuid(),
 });
 
+const reviewAccessRequestSchema = z.object({
+  requestId: z.string().uuid(),
+  roleId: z.string().uuid(),
+  reviewNotes: z.string().trim().max(500).optional(),
+});
+
+const rejectAccessRequestSchema = z.object({
+  requestId: z.string().uuid(),
+  reviewNotes: z.string().trim().max(500).optional(),
+});
+
 export type ActionState = {
   status: "idle" | "success" | "error";
   message: string;
@@ -38,8 +51,34 @@ export type ActionState = {
 
 export type RoleActionState = ActionState;
 export type InviteActionState = ActionState;
+export type AccessRequestActionState = ActionState;
 
 const ROLE_NAME_REGEX = /^[a-z][a-z0-9_-]{2,31}$/;
+const JOIN_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const JOIN_CODE_TTL_HOURS = 48;
+
+function joinCodeSecret() {
+  return (
+    process.env.ACCESS_REQUEST_JOIN_CODE_SECRET ??
+    process.env.PASSWORD_RESET_OTP_SECRET ??
+    process.env.SUPABASE_SERVICE_ROLE_KEY ??
+    "packet-of-lies-join-code-secret"
+  );
+}
+
+function hashJoinCode(code: string) {
+  return createHash("sha256").update(`${code}:${joinCodeSecret()}`).digest("hex");
+}
+
+function createJoinCode(length = 10) {
+  const bytes = randomBytes(length);
+  let result = "";
+  for (let i = 0; i < length; i += 1) {
+    const index = bytes[i] % JOIN_CODE_ALPHABET.length;
+    result += JOIN_CODE_ALPHABET[index];
+  }
+  return `${result.slice(0, 5)}-${result.slice(5)}`;
+}
 
 async function ensureAdminAccess(): Promise<{ auth: AuthContext } | { error: string }> {
   const auth = await getAuthContext();
@@ -525,5 +564,167 @@ export async function inviteUserAction(
   return {
     status: "success",
     message: "Invite sent successfully.",
+  };
+}
+
+export async function approveAccessRequestAction(
+  _prevState: AccessRequestActionState,
+  formData: FormData
+): Promise<AccessRequestActionState> {
+  const access = await ensureAdminAccess();
+  if ("error" in access) {
+    return { status: "error", message: access.error };
+  }
+
+  const parsed = reviewAccessRequestSchema.safeParse({
+    requestId: formData.get("requestId"),
+    roleId: formData.get("roleId"),
+    reviewNotes: formData.get("reviewNotes") || undefined,
+  });
+
+  if (!parsed.success) {
+    return { status: "error", message: "Invalid approval payload." };
+  }
+
+  if (!hasInviteEmailEnv()) {
+    return {
+      status: "error",
+      message:
+        "Email sender is not configured. Add INVITE_SMTP_USER and INVITE_SMTP_PASS before approving access requests.",
+    };
+  }
+
+  const admin = createAdminClient();
+  const roleResult = await getRoleById(admin, parsed.data.roleId);
+  if (roleResult.error || !roleResult.data) {
+    return { status: "error", message: "Selected role does not exist." };
+  }
+
+  const requestResult = await admin
+    .from("access_requests")
+    .select("id, email, full_name, status")
+    .eq("id", parsed.data.requestId)
+    .maybeSingle();
+
+  if (requestResult.error || !requestResult.data) {
+    return { status: "error", message: "Access request not found." };
+  }
+
+  if (requestResult.data.status !== "pending") {
+    return {
+      status: "error",
+      message: "This request is already processed.",
+    };
+  }
+
+  const code = createJoinCode();
+  const codeHash = hashJoinCode(code);
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + JOIN_CODE_TTL_HOURS * 60 * 60 * 1000);
+
+  const update = await admin
+    .from("access_requests")
+    .update({
+      status: "approved",
+      reviewed_by: access.auth.userId,
+      reviewed_at: now.toISOString(),
+      review_notes: parsed.data.reviewNotes || null,
+      approved_role_id: roleResult.data.id,
+      join_code_hash: codeHash,
+      join_code_expires_at: expiresAt.toISOString(),
+      join_code_sent_at: now.toISOString(),
+      join_code_consumed_at: null,
+      joined_user_id: null,
+    })
+    .eq("id", requestResult.data.id);
+
+  if (update.error) {
+    return { status: "error", message: update.error.message };
+  }
+
+  try {
+    const siteUrl = getSiteUrl();
+    await sendAccessApprovedEmail({
+      to: requestResult.data.email,
+      fullName: requestResult.data.full_name,
+      joinCode: code,
+      roleName: roleResult.data.name,
+      expiresAtLabel: expiresAt.toLocaleString(),
+      loginUrl: `${siteUrl}/auth/login`,
+    });
+  } catch (error) {
+    await admin
+      .from("access_requests")
+      .update({
+        status: "pending",
+        reviewed_by: null,
+        reviewed_at: null,
+        review_notes: null,
+        approved_role_id: null,
+        join_code_hash: null,
+        join_code_expires_at: null,
+        join_code_sent_at: null,
+        join_code_consumed_at: null,
+        joined_user_id: null,
+      })
+      .eq("id", requestResult.data.id);
+
+    return {
+      status: "error",
+      message: error instanceof Error ? error.message : "Failed to send approval email.",
+    };
+  }
+
+  revalidatePath("/admin");
+  return {
+    status: "success",
+    message: `Approved and emailed one-time join code to ${requestResult.data.email}.`,
+  };
+}
+
+export async function rejectAccessRequestAction(
+  _prevState: AccessRequestActionState,
+  formData: FormData
+): Promise<AccessRequestActionState> {
+  const access = await ensureAdminAccess();
+  if ("error" in access) {
+    return { status: "error", message: access.error };
+  }
+
+  const parsed = rejectAccessRequestSchema.safeParse({
+    requestId: formData.get("requestId"),
+    reviewNotes: formData.get("reviewNotes") || undefined,
+  });
+
+  if (!parsed.success) {
+    return { status: "error", message: "Invalid rejection payload." };
+  }
+
+  const admin = createAdminClient();
+  const update = await admin
+    .from("access_requests")
+    .update({
+      status: "rejected",
+      reviewed_by: access.auth.userId,
+      reviewed_at: new Date().toISOString(),
+      review_notes: parsed.data.reviewNotes || null,
+      approved_role_id: null,
+      join_code_hash: null,
+      join_code_expires_at: null,
+      join_code_sent_at: null,
+      join_code_consumed_at: null,
+      joined_user_id: null,
+    })
+    .eq("id", parsed.data.requestId)
+    .eq("status", "pending");
+
+  if (update.error) {
+    return { status: "error", message: update.error.message };
+  }
+
+  revalidatePath("/admin");
+  return {
+    status: "success",
+    message: "Access request rejected.",
   };
 }

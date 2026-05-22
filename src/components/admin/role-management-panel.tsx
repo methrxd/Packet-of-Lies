@@ -10,7 +10,6 @@ import {
   updateRolePermissionsAction,
   updateUserRoleAction,
 } from "@/app/(app)/admin/actions";
-import { Badge } from "@/components/ui/badge";
 
 type AdminUser = {
   id: string;
@@ -130,20 +129,19 @@ export function RoleManagementPanel({
           >
             <input type="hidden" name="roleId" value={role.id} />
             <div className="flex flex-wrap items-center gap-2">
-              <Badge
-                variant="outline"
+              <span
                 className={
                   role.name === "admin"
-                    ? "border-[var(--accent-border)] bg-[var(--accent-soft)] text-primary"
-                    : "border-white/10 bg-white/4 text-[var(--text-secondary)]"
+                    ? "inline-flex rounded-full border border-[var(--accent-border)] bg-[var(--accent-soft)] px-2 py-1 text-xs text-primary"
+                    : "inline-flex rounded-full border border-white/10 bg-white/4 px-2 py-1 text-xs text-[var(--text-secondary)]"
                 }
               >
                 {role.name}
-              </Badge>
+              </span>
               {role.isSystem ? (
-                <Badge variant="outline" className="border-white/10 bg-white/4 text-[var(--text-secondary)]">
+                <span className="inline-flex rounded-full border border-white/10 bg-white/4 px-2 py-1 text-xs text-[var(--text-secondary)]">
                   system
-                </Badge>
+                </span>
               ) : null}
             </div>
             {role.description ? (
