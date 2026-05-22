@@ -26,22 +26,32 @@ export function AppHeader({
   role,
 }: AppHeaderProps) {
   return (
-    <header className="sticky top-0 z-20 border-b border-white/6 bg-[color:rgba(8,8,8,0.86)]/95 backdrop-blur">
+    <header className="sticky top-0 z-20 border-b border-white/6 bg-[color:rgba(7,8,10,0.86)] backdrop-blur-xl">
       <div className="flex h-16 items-center gap-3 px-4 md:px-6">
-        <SidebarTrigger className="border border-white/6 bg-[var(--bg-card)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]" />
+        <SidebarTrigger className="border border-white/10 bg-[color:rgba(255,255,255,0.02)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]" />
 
-        <div className="relative hidden max-w-xl flex-1 md:flex">
+        <div className="hidden items-center gap-3 md:flex">
+          <p className="font-mono-ui text-[10px] tracking-[0.24em] text-[var(--text-muted)] uppercase">
+            Investigation Suite
+          </p>
+          <span className="h-4 w-px bg-white/12" />
+          <p className="text-sm text-[var(--text-secondary)]">
+            Malware Analysis and Mitigation
+          </p>
+        </div>
+
+        <div className="relative hidden max-w-lg flex-1 md:flex">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-[var(--text-muted)]" />
           <Input
             readOnly
             value=""
-            placeholder="Search telemetry, cases, or indicators..."
-            className="h-11 rounded-xl border-white/8 bg-white/3 pl-9 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-muted)]"
+            placeholder="Search cases, indicators, or reports..."
+            className="h-10 rounded-xl border-white/10 bg-[color:rgba(255,255,255,0.02)] pl-9 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-muted)]"
           />
         </div>
 
         <div className="ml-auto flex items-center gap-2">
-          <div className="hidden rounded-xl border border-white/8 bg-white/2 px-3 py-1.5 md:block">
+          <div className="hidden rounded-xl border border-white/10 bg-[color:rgba(255,255,255,0.02)] px-3 py-1.5 md:block">
             <p className="text-sm font-medium text-[var(--text-primary)]">{displayName}</p>
             <p className="text-[11px] text-[var(--text-muted)]">{roleLabel(role)}</p>
           </div>

@@ -69,7 +69,7 @@ export function AppSidebar({
       <SidebarHeader className="gap-4 px-3 py-4">
         <Link
           href="/dashboard"
-          className="flex items-center gap-3 rounded-xl border border-white/6 bg-white/2 px-2.5 py-2.5 transition-colors hover:bg-white/4"
+          className="flex items-center gap-3 rounded-xl border border-white/8 bg-[color:rgba(255,255,255,0.02)] px-2.5 py-2.5 transition-colors hover:bg-[color:rgba(255,255,255,0.05)]"
         >
           <div className="flex size-10 items-center justify-center rounded-xl border border-[var(--accent-border)] bg-[var(--accent-soft)] text-primary">
             <Command className="size-5" />
@@ -86,7 +86,7 @@ export function AppSidebar({
 
         <Button
           variant="outline"
-          className="h-11 justify-start gap-2 border-[var(--accent-border)] bg-[var(--accent-soft)] font-mono-ui text-[11px] tracking-[0.16em] text-primary uppercase hover:bg-[color:rgba(2,249,109,0.12)] hover:text-primary"
+          className="h-11 justify-start gap-2 border-white/10 bg-[color:rgba(255,255,255,0.02)] font-mono-ui text-[11px] tracking-[0.16em] text-[var(--text-primary)] uppercase hover:bg-[color:rgba(255,255,255,0.07)] hover:text-[var(--text-primary)]"
         >
           <div className="flex size-6 items-center justify-center overflow-hidden rounded-md border border-[var(--accent-border)] bg-[var(--bg-card)]">
             {avatarUrl ? (
@@ -117,9 +117,9 @@ export function AppSidebar({
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {visiblePrimaryNavigation.map((item) => {
-                const isActive =
-                  pathname === item.href || pathname.startsWith(`${item.href}/`);
+            {visiblePrimaryNavigation.map((item, index) => {
+              const isActive =
+                pathname === item.href || pathname.startsWith(`${item.href}/`);
 
                 return (
                   <SidebarMenuItem key={item.href}>
@@ -133,6 +133,9 @@ export function AppSidebar({
                           "bg-[color:rgba(2,249,109,0.08)] text-sidebar-foreground shadow-[inset_0_0_0_1px_rgba(2,249,109,0.16)]"
                       )}
                     >
+                      <span className="font-mono-ui w-5 text-[10px] text-[var(--text-muted)]">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
                       <item.icon className="size-4" />
                       <span>{item.label}</span>
                     </SidebarMenuButton>
@@ -150,7 +153,7 @@ export function AppSidebar({
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {adminNavigation.map((item) => {
+                {adminNavigation.map((item, index) => {
                   const isActive =
                     pathname === item.href || pathname.startsWith(`${item.href}/`);
 
@@ -166,6 +169,9 @@ export function AppSidebar({
                             "bg-[color:rgba(95,156,255,0.10)] text-sidebar-foreground shadow-[inset_0_0_0_1px_rgba(95,156,255,0.22)]"
                         )}
                       >
+                        <span className="font-mono-ui w-5 text-[10px] text-[var(--text-muted)]">
+                          {String(index + 1).padStart(2, "0")}
+                        </span>
                         <item.icon className="size-4" />
                         <span>{item.label}</span>
                       </SidebarMenuButton>

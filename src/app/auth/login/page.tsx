@@ -37,41 +37,93 @@ export default async function LoginPage() {
   }
 
   return (
-    <main className="relative flex min-h-svh items-center justify-center px-4 py-10">
-      <div className="pointer-events-none absolute inset-0 bg-grid-muted opacity-25" />
-      <Card className="relative z-10 w-full max-w-2xl border-white/8 bg-[var(--bg-card)] panel-shadow">
-        <CardHeader className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Badge
-              variant="outline"
-              className="border-[var(--accent-border)] bg-[var(--accent-soft)] font-mono-ui text-[10px] tracking-[0.18em] text-primary uppercase"
-            >
-              Packet of Lies - Login
-            </Badge>
-            <ShieldCheck className="size-5 text-primary" />
-          </div>
-          <CardTitle className="font-heading text-2xl">
-            Investigator access
-          </CardTitle>
-          <CardDescription className="leading-6 text-[var(--text-secondary)]">
-            This portal is for analysts and admins working on malware investigation cases.
-            Use your assigned account to continue, or reset your password using OTP verification.
-          </CardDescription>
-          <div className="grid gap-2 rounded-xl border border-white/8 bg-white/2 p-3 text-sm text-[var(--text-secondary)] md:grid-cols-2">
-            <p className="flex items-start gap-2">
-              <ClipboardCheck className="mt-0.5 size-4 shrink-0 text-primary" />
-              University demo environment: role-based access and full audit trail are active.
-            </p>
-            <p className="flex items-start gap-2">
-              <ClipboardCheck className="mt-0.5 size-4 shrink-0 text-primary" />
-              Password resets require a one-time OTP sent to the registered email.
-            </p>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <LoginForm />
-        </CardContent>
-      </Card>
+    <main className="relative min-h-svh px-4 py-10 md:px-8 md:py-12">
+      <div className="pointer-events-none absolute inset-0 bg-grid-muted opacity-20" />
+      <div className="relative z-10 mx-auto grid w-full max-w-6xl gap-5 lg:grid-cols-[1.1fr_0.9fr]">
+        <Card className="border-white/8 bg-[color:rgba(10,12,12,0.9)]">
+          <CardHeader className="space-y-5">
+            <div className="flex items-center justify-between">
+              <Badge
+                variant="outline"
+                className="border-[var(--accent-border)] bg-[var(--accent-soft)] font-mono-ui text-[10px] tracking-[0.18em] text-primary uppercase"
+              >
+                Packet of Lies
+              </Badge>
+              <ShieldCheck className="size-5 text-primary" />
+            </div>
+            <CardTitle className="font-heading max-w-2xl text-3xl leading-tight md:text-4xl">
+              Malware case operations
+              <br />
+              for analyst teams
+            </CardTitle>
+            <CardDescription className="max-w-xl text-sm leading-7 text-[var(--text-secondary)] normal-case tracking-normal">
+              A university-grade investigation platform for detecting, analyzing,
+              documenting, and mitigating malware incidents with clear workflow controls.
+            </CardDescription>
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="rounded-2xl border border-white/8 bg-[color:rgba(255,255,255,0.02)] p-4">
+                <p className="font-mono-ui text-[10px] tracking-[0.18em] text-[var(--text-muted)] uppercase">
+                  01 Workflow
+                </p>
+                <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
+                  Structured lifecycle from intake to triage, investigation, containment, and resolution.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-white/8 bg-[color:rgba(255,255,255,0.02)] p-4">
+                <p className="font-mono-ui text-[10px] tracking-[0.18em] text-[var(--text-muted)] uppercase">
+                  02 Evidence
+                </p>
+                <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
+                  Findings, response actions, and timeline logs with role-based access controls.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-white/8 bg-[color:rgba(255,255,255,0.02)] p-4">
+                <p className="font-mono-ui text-[10px] tracking-[0.18em] text-[var(--text-muted)] uppercase">
+                  03 Intelligence
+                </p>
+                <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
+                  IOC registry and reporting to align with malware analysis goals in your PRD.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-white/8 bg-[color:rgba(255,255,255,0.02)] p-4">
+                <p className="font-mono-ui text-[10px] tracking-[0.18em] text-[var(--text-muted)] uppercase">
+                  04 Recovery
+                </p>
+                <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
+                  OTP-verified credential recovery and auditable operations for secure continuity.
+                </p>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+
+        <Card className="border-white/8 bg-[color:rgba(10,12,12,0.94)] panel-shadow">
+          <CardHeader className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Badge
+                variant="outline"
+                className="border-[var(--accent-border)] bg-[var(--accent-soft)] font-mono-ui text-[10px] tracking-[0.18em] text-primary uppercase"
+              >
+                Access Portal
+              </Badge>
+              <ShieldCheck className="size-5 text-primary" />
+            </div>
+            <CardTitle className="font-heading text-2xl">Sign in</CardTitle>
+            <CardDescription className="leading-7 text-[var(--text-secondary)] normal-case tracking-normal">
+              Use your assigned account credentials or recover access with OTP verification.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <LoginForm />
+            <div className="mt-4 rounded-xl border border-white/8 bg-[color:rgba(255,255,255,0.02)] p-3 text-xs leading-5 text-[var(--text-muted)]">
+              <p className="flex items-start gap-2">
+                <ClipboardCheck className="mt-0.5 size-4 shrink-0 text-primary" />
+                Account security note: OTP reset codes are valid for a short window and must match exactly before password updates are allowed.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </main>
   );
 }

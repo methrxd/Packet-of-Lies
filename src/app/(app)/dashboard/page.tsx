@@ -1,4 +1,4 @@
-import { ArrowUpRight, Binary, DatabaseZap, ShieldCheck } from "lucide-react";
+import { ArrowUpRight, Binary, DatabaseZap, Radar, ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -12,21 +12,21 @@ import { PageHeader } from "@/components/app/page-header";
 
 const foundationMetrics = [
   {
-    label: "Core stack",
-    value: "Next.js 16",
-    detail: "App Router, Tailwind v4, shadcn/ui",
+    label: "Stack health",
+    value: "Next.js + Supabase",
+    detail: "SSR auth, secured APIs, and live investigation streams",
     icon: Binary,
   },
   {
-    label: "Backend shape",
-    value: "Supabase SSR",
-    detail: "Browser, server, and proxy clients scaffolded",
+    label: "Detection flow",
+    value: "Case-first workflow",
+    detail: "Findings, mitigations, comments, and activity timeline are connected",
     icon: DatabaseZap,
   },
   {
-    label: "Delivery state",
-    value: "Operational",
-    detail: "Auth, intake, and role controls are active",
+    label: "Access posture",
+    value: "Role-gated",
+    detail: "Invite onboarding with role-based permissions and audit coverage",
     icon: ShieldCheck,
   },
 ];
@@ -35,12 +35,12 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Command center"
-        title="Secure operations dashboard"
-        description="Track current platform readiness, investigation workload, and access posture from a single analyst-focused command center."
+        eyebrow="Operations Board"
+        title="Malware analysis command view"
+        description="A single operational board for your university project demonstration: monitor readiness, current investigation capacity, and security posture in real time."
         actions={
           <Button className="h-10 rounded-xl bg-primary px-4 text-primary-foreground hover:bg-[var(--accent-primary-hover)]">
-            Review active queue
+            Open active cases
             <ArrowUpRight className="size-4" />
           </Button>
         }
@@ -75,27 +75,27 @@ export default function DashboardPage() {
           <Card className="border-white/6 bg-[var(--bg-card)]">
             <CardHeader>
               <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
-                Platform status
+                Coverage map
               </CardDescription>
               <CardTitle className="font-heading text-xl">
-                Core capabilities online
+                PRD objective coverage snapshot
               </CardTitle>
             </CardHeader>
             <CardContent className="grid gap-3 text-sm text-[var(--text-secondary)] md:grid-cols-2">
               <div className="rounded-2xl border border-white/6 bg-white/2 p-4">
-                Authentication and route protection are enforced.
+                Detection pipeline: cases, indicators, and report generation are live.
               </div>
               <div className="rounded-2xl border border-white/6 bg-white/2 p-4">
-                Invite-only onboarding and profile completion are active.
+                Analysis trail: findings, comments, and timeline logging are connected.
               </div>
               <div className="rounded-2xl border border-white/6 bg-white/2 p-4">
-                Cases and submissions now persist through Supabase-backed workflows.
+                Response model: mitigation tracking supports lifecycle decisions.
               </div>
               <div className="rounded-2xl border border-white/6 bg-white/2 p-4">
-                Roles, permissions, and secure user removal controls are active for admins.
+                Governance: role permissions and admin controls are actively enforced.
               </div>
               <div className="rounded-2xl border border-white/6 bg-white/2 p-4">
-                Indicators and case report generation are now live with persisted records.
+                Recovery readiness: OTP account reset and secure onboarding are enabled.
               </div>
             </CardContent>
           </Card>
@@ -104,10 +104,10 @@ export default function DashboardPage() {
         <Card className="border-white/6 bg-[var(--bg-shell)]">
           <CardHeader>
             <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
-              Activity focus
+              Execution focus
             </CardDescription>
             <CardTitle className="font-heading text-xl">
-              Immediate priorities
+              Live priorities
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -126,12 +126,21 @@ export default function DashboardPage() {
 
             <div className="rounded-3xl border border-white/6 bg-grid-muted bg-[var(--bg-card)] p-5">
               <p className="font-mono-ui text-[10px] tracking-[0.18em] text-[var(--text-muted)] uppercase">
-                Upcoming work
+                Next review checkpoints
               </p>
               <ul className="mt-4 space-y-3 text-sm leading-6 text-[var(--text-secondary)]">
-                <li>Case detail timeline and assignment workflows</li>
-                <li>Report export formats (PDF and DOCX)</li>
-                <li>Advanced indicator correlation and enrichment</li>
+                <li className="flex items-center gap-2">
+                  <Radar className="size-4 text-primary" />
+                  Validate malware analysis workflow against live demo scenario.
+                </li>
+                <li className="flex items-center gap-2">
+                  <Radar className="size-4 text-primary" />
+                  Finalize report pack for academic submission review.
+                </li>
+                <li className="flex items-center gap-2">
+                  <Radar className="size-4 text-primary" />
+                  Complete UX consistency pass across all operational pages.
+                </li>
               </ul>
             </div>
           </CardContent>

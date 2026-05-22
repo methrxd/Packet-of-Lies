@@ -71,18 +71,18 @@ export default async function CasesPage() {
     <div className="space-y-6">
       <PageHeader
         eyebrow="Cases"
-        title="Live investigation queue"
-        description="Create and track investigation records with lifecycle status, severity, and priority metadata."
+        title="Investigation caseboard"
+        description="Open new malware investigations, track lifecycle progression, and keep severity and priority aligned with response urgency."
       />
 
       <div className="grid gap-4 xl:grid-cols-[1.2fr_1.8fr]">
         <Card className="border-white/6 bg-[var(--bg-card)]">
           <CardHeader>
             <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
-              Create case
+              Case intake
             </CardDescription>
             <CardTitle className="font-heading text-xl">
-              Open a new investigation
+              Open investigation record
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -96,7 +96,7 @@ export default async function CasesPage() {
               Lifecycle telemetry
             </CardDescription>
             <CardTitle className="font-heading text-xl">
-              Queue status snapshot
+              Queue state snapshot
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -113,6 +113,7 @@ export default async function CasesPage() {
                 <p className="mt-3 text-2xl font-semibold text-[var(--text-primary)]">
                   {count}
                 </p>
+                <p className="mt-1 text-xs text-[var(--text-muted)]">active cases</p>
               </div>
             ))}
           </CardContent>

@@ -32,7 +32,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           username={auth.username}
           avatarUrl={auth.avatarUrl}
         />
-        <div className="flex flex-1 flex-col px-4 py-5 md:px-6 md:py-6">
+        <div className="mx-auto flex w-full max-w-[1500px] flex-1 flex-col px-4 py-5 md:px-6 md:py-6">
           {children}
         </div>
       </SidebarInset>
