@@ -29,11 +29,11 @@ export function SignOutButton() {
     <button
       onClick={handleSignOut}
       disabled={isPending}
-      className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-white/8 bg-[var(--bg-card)] px-3 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] disabled:cursor-not-allowed disabled:opacity-60"
+      className="inline-flex h-9 items-center justify-center gap-2 rounded-full border border-white/12 bg-[color:rgba(255,255,255,0.03)] px-3 text-[var(--text-secondary)] transition-colors hover:bg-[color:rgba(255,255,255,0.08)] hover:text-[var(--text-primary)] disabled:cursor-not-allowed disabled:opacity-60"
     >
       <LogOut className="size-4" />
       <span className="hidden text-sm md:inline">
-        {isPending ? "Signing out..." : "Sign out"}
+        {isPending ? "Signing out" : "Sign out"}
       </span>
       <span className="sr-only">Sign out</span>
     </button>

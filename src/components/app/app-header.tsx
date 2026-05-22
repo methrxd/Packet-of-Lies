@@ -1,19 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Bell, Search } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useMemo } from "react";
 
 import type { AppRole } from "@/lib/auth";
+import { adminNavigation, primaryNavigation } from "@/lib/navigation";
+import { cn } from "@/lib/utils";
 import { ProfileQuickPanel } from "@/components/app/profile-quick-panel";
 import { SignOutButton } from "@/components/auth/sign-out-button";
-import { Input } from "@/components/ui/input";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 
 type AppHeaderProps = {
   displayName: string;
   username: string | null;
   avatarUrl: string | null;
   role: AppRole;
+  permissions: string[];
 };
 
 function roleLabel(role: AppRole) {
@@ -25,64 +28,69 @@ export function AppHeader({
   username,
   avatarUrl,
   role,
+  permissions,
 }: AppHeaderProps) {
-  const [clock, setClock] = useState<string>("");
+  const pathname = usePathname();
+  const isAdmin = role === "admin";
 
-  useEffect(() => {
-    const update = () => {
-      setClock(
-        new Intl.DateTimeFormat(undefined, {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          hour12: false,
-        }).format(new Date())
-      );
-    };
-    update();
-    const id = window.setInterval(update, 1000);
-    return () => window.clearInterval(id);
-  }, []);
+  const navItems = useMemo(() => {
+    const visiblePrimary = primaryNavigation.filter((item) => {
+      if (!item.requiredPermission) {
+        return true;
+      }
+      if (isAdmin) {
+        return true;
+      }
+      return permissions.includes(item.requiredPermission);
+    });
+    return isAdmin ? [...visiblePrimary, ...adminNavigation] : visiblePrimary;
+  }, [isAdmin, permissions]);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/8 bg-[color:rgba(8,9,11,0.88)] backdrop-blur-xl">
-      <div className="mx-auto flex h-16 w-full max-w-[1540px] items-center gap-3 px-4 md:px-7">
-        <SidebarTrigger className="border border-white/12 bg-[color:rgba(255,255,255,0.02)] text-[var(--text-secondary)] hover:bg-[color:rgba(255,255,255,0.08)] hover:text-[var(--text-primary)]" />
+    <header className="pointer-events-none fixed top-6 left-1/2 z-50 w-[min(1240px,calc(100%-2rem))] -translate-x-1/2">
+      <div className="pointer-events-auto helix-shell rounded-full border-white/12 px-3 py-2">
+        <div className="helix-grid-lines opacity-10" />
+        <div className="relative z-10 flex items-center justify-between gap-3">
+          <Link href="/dashboard" className="flex min-w-0 items-center gap-2 rounded-full px-2 py-1.5">
+            <Image src="/helix/helix-logo.svg" alt="Packet of Lies" width={28} height={28} className="size-8" />
+            <div className="hidden min-w-0 md:block">
+              <p className="helix-kicker">Packet of Lies</p>
+              <p className="truncate text-xs text-[var(--text-secondary)]">Malware Analysis and Mitigations</p>
+            </div>
+          </Link>
 
-        <div className="hidden items-center gap-3 lg:flex">
-          <span className="helix-chip">Investigation suite</span>
-          <span className="helix-rail-label">{clock || "syncing time..."}</span>
-        </div>
+          <nav className="hidden items-center gap-1 xl:flex">
+            {navItems.map((item) => {
+              const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "rounded-full border border-transparent px-3 py-2 text-sm text-[var(--text-secondary)] transition-colors",
+                    "hover:border-white/16 hover:text-[var(--text-primary)]",
+                    isActive && "border-[var(--accent-border)] bg-[var(--accent-soft)] text-primary"
+                  )}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
 
-        <div className="relative ml-1 hidden max-w-xl flex-1 md:flex">
-          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-[var(--text-muted)]" />
-          <Input
-            readOnly
-            value=""
-            placeholder="Search cases, indicators, reports"
-            className="h-10 rounded-full border-white/10 bg-[color:rgba(255,255,255,0.02)] pl-9 text-sm text-[var(--text-secondary)] placeholder:text-[var(--text-muted)]"
-          />
-        </div>
-
-        <div className="ml-auto flex items-center gap-2">
-          <div className="hidden rounded-2xl border border-white/10 bg-[color:rgba(255,255,255,0.02)] px-3 py-1.5 md:block">
-            <p className="text-sm font-semibold text-[var(--text-primary)]">{displayName}</p>
-            <p className="text-[11px] text-[var(--text-muted)]">{roleLabel(role)}</p>
+          <div className="flex items-center gap-2">
+            <div className="hidden rounded-full border border-white/10 bg-[color:rgba(255,255,255,0.02)] px-3 py-1.5 md:block">
+              <p className="text-xs font-medium text-[var(--text-primary)]">{displayName}</p>
+              <p className="text-[10px] text-[var(--text-muted)]">{roleLabel(role)}</p>
+            </div>
+            <ProfileQuickPanel
+              displayName={displayName}
+              username={username}
+              role={role}
+              avatarUrl={avatarUrl}
+            />
+            <SignOutButton />
           </div>
-          <button className="flex size-10 items-center justify-center rounded-full border border-white/10 bg-[color:rgba(255,255,255,0.03)] text-[var(--text-secondary)] transition-colors hover:bg-[color:rgba(255,255,255,0.08)] hover:text-[var(--text-primary)]">
-            <Bell className="size-4" />
-            <span className="sr-only">Notifications</span>
-          </button>
-          <ProfileQuickPanel
-            displayName={displayName}
-            username={username}
-            role={role}
-            avatarUrl={avatarUrl}
-          />
-          <SignOutButton />
         </div>
       </div>
     </header>

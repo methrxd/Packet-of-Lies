@@ -2,9 +2,7 @@ import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 
 import { AppHeader } from "@/components/app/app-header";
-import { AppSidebar } from "@/components/app/app-sidebar";
 import { getAuthContext } from "@/lib/auth";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const auth = await getAuthContext();
@@ -18,27 +16,20 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <SidebarProvider defaultOpen>
-      <AppSidebar
+    <div className="min-h-svh bg-transparent">
+      <AppHeader
         role={auth.role}
         permissions={auth.permissions}
         displayName={auth.displayName}
+        username={auth.username}
         avatarUrl={auth.avatarUrl}
       />
-      <SidebarInset className="min-h-svh bg-transparent">
-        <AppHeader
-          role={auth.role}
-          displayName={auth.displayName}
-          username={auth.username}
-          avatarUrl={auth.avatarUrl}
-        />
-        <div className="mx-auto flex w-full max-w-[1540px] flex-1 flex-col px-4 py-5 md:px-7 md:py-7">
-          <div className="helix-shell min-h-[calc(100svh-7.5rem)] p-4 md:p-6">
-            <div className="helix-grid-lines" />
-            <div className="relative z-10">{children}</div>
-          </div>
+      <div className="mx-auto w-full max-w-[1540px] px-4 pb-8 pt-28 md:px-7 md:pt-32">
+        <div className="helix-shell min-h-[calc(100svh-9rem)] p-4 md:p-6">
+          <div className="helix-grid-lines" />
+          <div className="relative z-10">{children}</div>
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+      </div>
+    </div>
   );
 }
