@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { ArrowRight, Radar, ShieldCheck, Sparkles, Workflow } from "lucide-react";
+import { ArrowUpRight, Radar, ShieldCheck, Sparkles, Workflow } from "lucide-react";
 
+import { AsciiAmbient } from "@/components/app/ascii-ambient";
 import { PageHeader } from "@/components/app/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -54,7 +55,7 @@ export default async function DashboardPage() {
       .from("case_activity_log")
       .select("id, action, created_at")
       .order("created_at", { ascending: false })
-      .limit(8),
+      .limit(9),
   ]);
 
   const metrics = [
@@ -65,33 +66,34 @@ export default async function DashboardPage() {
   ];
 
   const caseRows = (latestCases ?? []) as CaseLite[];
+  const activityRows = latestActivity ?? [];
 
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Dashboard"
-        title="Operations"
+        eyebrow="Command Center"
+        title="Malware analysis and mitigation workspace"
+        description="Live case operations, evidence logging, and response tracking."
         actions={
-          <Button className="h-10 rounded-xl bg-primary px-4 text-primary-foreground hover:bg-[var(--accent-primary-hover)]">
+          <Button className="h-10 rounded-full bg-primary px-4 text-primary-foreground hover:bg-[var(--accent-primary-hover)]">
             <Link href="/cases" className="inline-flex items-center gap-2">
               Open caseboard
-              <ArrowRight className="size-4" />
+              <ArrowUpRight className="size-4" />
             </Link>
           </Button>
         }
       />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {metrics.map((metric) => (
-          <Card key={metric.label}>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <p className="font-mono-ui text-[10px] tracking-[0.2em] text-[var(--text-muted)] uppercase">
-                {metric.label}
-              </p>
+        {metrics.map((metric, index) => (
+          <Card key={metric.label} className="overflow-hidden">
+            <div className="helix-grid-lines opacity-10" />
+            <CardHeader className="relative z-10 flex flex-row items-center justify-between">
+              <p className="helix-kicker">{`0${index + 1}`} {metric.label}</p>
               <metric.icon className="size-4 text-primary" />
             </CardHeader>
-            <CardContent>
-              <p className="text-4xl font-semibold tracking-tight text-[var(--text-primary)]">
+            <CardContent className="relative z-10">
+              <p className="font-mono-ui text-5xl font-semibold tracking-tight text-[var(--text-primary)]">
                 {metric.value}
               </p>
             </CardContent>
@@ -99,28 +101,27 @@ export default async function DashboardPage() {
         ))}
       </section>
 
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="grid gap-4 xl:grid-cols-[1.3fr_0.7fr]">
         <Card>
           <CardHeader>
-            <CardTitle>Latest cases</CardTitle>
+            <CardTitle>Active case stream</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-3">
             {caseRows.length === 0 ? (
-              <p className="rounded-xl border border-white/8 bg-white/3 px-3 py-2 text-sm text-[var(--text-secondary)]">
-                No cases yet.
-              </p>
+              <p className="helix-card text-sm text-[var(--text-secondary)]">No cases yet.</p>
             ) : null}
             {caseRows.map((item) => (
               <Link
                 key={item.id}
                 href={`/cases/${item.id}`}
-                className="flex items-center justify-between rounded-xl border border-white/8 bg-[color:rgba(255,255,255,0.02)] px-3 py-2 transition-colors hover:bg-[color:rgba(255,255,255,0.06)]"
+                className="helix-card flex items-center justify-between transition-colors hover:bg-[color:rgba(255,255,255,0.06)]"
               >
                 <div>
-                  <p className="font-mono-ui text-[10px] tracking-[0.16em] text-[var(--text-muted)] uppercase">
-                    {item.case_number}
-                  </p>
+                  <p className="helix-kicker">{item.case_number}</p>
                   <p className="mt-1 text-sm text-[var(--text-primary)]">{item.title}</p>
+                  <p className="mt-1 text-xs text-[var(--text-muted)]">
+                    Updated {new Date(item.updated_at).toLocaleString()}
+                  </p>
                 </div>
                 <Badge variant="outline" className={statusClass[item.status]}>
                   {item.status}
@@ -130,32 +131,31 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Activity stream</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {(latestActivity ?? []).length === 0 ? (
-              <p className="rounded-xl border border-white/8 bg-white/3 px-3 py-2 text-sm text-[var(--text-secondary)]">
-                No activity yet.
-              </p>
-            ) : null}
-            {(latestActivity ?? []).map((row) => (
-              <div
-                key={row.id}
-                className="rounded-xl border border-white/8 bg-[color:rgba(255,255,255,0.02)] px-3 py-2"
-              >
-                <p className="font-mono-ui text-[11px] text-[var(--text-primary)] uppercase">
-                  {row.action.replaceAll("_", " ")}
-                </p>
-                <p className="mt-1 text-xs text-[var(--text-muted)]">
-                  {new Date(row.created_at).toLocaleString()}
-                </p>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+        <div className="space-y-4">
+          <AsciiAmbient title="Case signal feed" />
+          <Card>
+            <CardHeader>
+              <CardTitle>Latest events</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {activityRows.length === 0 ? (
+                <p className="helix-card text-sm text-[var(--text-secondary)]">No events yet.</p>
+              ) : null}
+              {activityRows.map((row) => (
+                <div key={row.id} className="helix-card">
+                  <p className="font-mono-ui text-[11px] uppercase text-[var(--text-primary)]">
+                    {row.action.replaceAll("_", " ")}
+                  </p>
+                  <p className="mt-1 text-xs text-[var(--text-muted)]">
+                    {new Date(row.created_at).toLocaleString()}
+                  </p>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
 }
+

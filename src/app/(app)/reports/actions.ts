@@ -139,26 +139,26 @@ export async function generateCaseReportAction(
     ...((submissions ?? []).slice(0, 5).map((submission) => ({
       type: "submission",
       title: submission.title,
-      detail: `${submission.submission_type} · ${submission.validation_state} · ${new Date(
+      detail: `${submission.submission_type} | ${submission.validation_state} | ${new Date(
         submission.created_at
       ).toLocaleString()}`,
     })) ?? []),
     ...((indicators ?? []).slice(0, 5).map((indicator) => ({
       type: "indicator",
       title: `${indicator.indicator_type}: ${indicator.indicator_value}`,
-      detail: `${indicator.status} · confidence ${indicator.confidence}% · last seen ${new Date(
+      detail: `${indicator.status} | confidence ${indicator.confidence}% | last seen ${new Date(
         indicator.last_seen_at
       ).toLocaleString()}`,
     })) ?? []),
     ...((caseFindings ?? []).slice(0, 4).map((finding) => ({
       type: "finding",
       title: finding.title,
-      detail: `${finding.detail} · logged ${new Date(finding.created_at).toLocaleString()}`,
+      detail: `${finding.detail} | logged ${new Date(finding.created_at).toLocaleString()}`,
     })) ?? []),
     ...((caseMitigations ?? []).slice(0, 4).map((mitigation) => ({
       type: "mitigation",
       title: mitigation.title,
-      detail: `${mitigation.status} · ${mitigation.detail} · logged ${new Date(
+      detail: `${mitigation.status} | ${mitigation.detail} | logged ${new Date(
         mitigation.created_at
       ).toLocaleString()}`,
     })) ?? []),

@@ -1,18 +1,11 @@
 import { redirect } from "next/navigation";
 
-import { createClient } from "@/lib/supabase/server";
-import { getAuthContext, hasPermission } from "@/lib/auth";
-import type { SubmissionType } from "@/lib/workflow";
-import { Badge } from "@/components/ui/badge";
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { PageHeader } from "@/components/app/page-header";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { getAuthContext, hasPermission } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
+import type { SubmissionType } from "@/lib/workflow";
 
 const typeClassMap: Record<SubmissionType, string> = {
   file: "border-[var(--accent-border)] bg-[var(--accent-soft)] text-primary",
@@ -57,11 +50,9 @@ export default async function SubmissionsPage() {
   const supabase = await createClient();
   const { data: submissions } = await supabase
     .from("submissions")
-    .select(
-      "id, title, submission_type, validation_state, created_at, payload, case_id, cases(case_number, title)"
-    )
+    .select("id, title, submission_type, validation_state, created_at, payload, case_id, cases(case_number, title)")
     .order("created_at", { ascending: false })
-    .limit(25);
+    .limit(30);
 
   const list = (submissions ?? []) as SubmissionRow[];
 
@@ -69,88 +60,70 @@ export default async function SubmissionsPage() {
     <div className="space-y-6">
       <PageHeader
         eyebrow="Submissions"
-        title="Submission review"
+        title="Senior analyst submission queue"
+        description="Review incoming submissions and map validated items into active cases."
       />
 
-      <div className="grid gap-4">
-        <Card className="border-white/6 bg-[var(--bg-card)]">
-          <CardHeader>
-            <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
-              Queue
-            </CardDescription>
-            <CardTitle className="font-heading text-xl">
-              Latest submissions
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {list.length === 0 ? (
-              <div className="rounded-2xl border border-white/6 bg-white/2 p-4 text-sm text-[var(--text-secondary)]">
-                No submissions are queued right now.
-              </div>
-            ) : null}
+      <Card>
+        <CardHeader>
+          <CardDescription className="helix-kicker">Queue</CardDescription>
+          <CardTitle>Incoming records</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {list.length === 0 ? (
+            <div className="helix-card text-sm text-[var(--text-secondary)]">
+              No submissions queued.
+            </div>
+          ) : null}
 
-            {list.map((item) => {
-              const linkedCase = Array.isArray(item.cases)
-                ? item.cases[0] ?? null
-                : item.cases;
-              const payloadValue =
-                typeof item.payload === "object" &&
-                item.payload !== null &&
-                "value" in item.payload
-                  ? String(item.payload.value)
-                  : "n/a";
-              const artifact =
-                typeof item.payload === "object" &&
-                item.payload !== null &&
-                "artifact" in item.payload &&
-                typeof item.payload.artifact === "object" &&
-                item.payload.artifact !== null
-                  ? item.payload.artifact
-                  : null;
-              const artifactName =
-                artifact && "fileName" in artifact ? String(artifact.fileName) : null;
+          {list.map((item) => {
+            const linkedCase = Array.isArray(item.cases) ? item.cases[0] ?? null : item.cases;
+            const payloadValue =
+              typeof item.payload === "object" && item.payload !== null && "value" in item.payload
+                ? String(item.payload.value)
+                : "n/a";
+            const artifact =
+              typeof item.payload === "object" &&
+              item.payload !== null &&
+              "artifact" in item.payload &&
+              typeof item.payload.artifact === "object" &&
+              item.payload.artifact !== null
+                ? item.payload.artifact
+                : null;
+            const artifactName =
+              artifact && "fileName" in artifact ? String(artifact.fileName) : null;
 
-              return (
-                <div
-                  key={item.id}
-                  className="rounded-2xl border border-white/6 bg-white/2 p-4"
-                >
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge
-                      variant="outline"
-                      className={typeClassMap[item.submission_type as SubmissionType]}
-                    >
-                      {item.submission_type}
-                    </Badge>
-                    <Badge variant="outline" className="border-white/10 bg-white/4">
-                      {item.validation_state}
-                    </Badge>
-                  </div>
-                  <p className="mt-3 text-base font-medium text-[var(--text-primary)]">
-                    {item.title}
-                  </p>
-                  <p className="font-mono-ui mt-2 break-all text-[12px] text-[var(--text-secondary)]">
-                    {payloadValue}
-                  </p>
-                  {artifactName ? (
-                    <p className="mt-1 text-sm text-[var(--text-muted)]">
-                      Attached file: {artifactName}
-                    </p>
-                  ) : null}
-                  <p className="mt-2 text-sm text-[var(--text-muted)]">
-                    {linkedCase
-                      ? `Linked to ${linkedCase.case_number} (${linkedCase.title})`
-                      : "No linked case yet"}
-                  </p>
-                  <p className="mt-2 text-sm text-[var(--text-secondary)]">
-                    {new Date(item.created_at).toLocaleString()}
-                  </p>
+            return (
+              <div key={item.id} className="helix-card">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="outline" className={typeClassMap[item.submission_type]}>
+                    {item.submission_type}
+                  </Badge>
+                  <Badge variant="outline" className="border-white/10 bg-white/4">
+                    {item.validation_state}
+                  </Badge>
                 </div>
-              );
-            })}
-          </CardContent>
-        </Card>
-      </div>
+                <p className="mt-3 text-base font-medium text-[var(--text-primary)]">{item.title}</p>
+                <p className="font-mono-ui mt-2 break-all text-[12px] text-[var(--text-secondary)]">
+                  {payloadValue}
+                </p>
+                {artifactName ? (
+                  <p className="mt-1 text-xs text-[var(--text-muted)]">Attached file: {artifactName}</p>
+                ) : null}
+                <p className="mt-2 text-xs text-[var(--text-muted)]">
+                  {linkedCase
+                    ? `Linked to ${linkedCase.case_number} (${linkedCase.title})`
+                    : "No linked case"}
+                </p>
+                <p className="mt-1 text-xs text-[var(--text-secondary)]">
+                  {new Date(item.created_at).toLocaleString()}
+                </p>
+              </div>
+            );
+          })}
+        </CardContent>
+      </Card>
     </div>
   );
 }
+

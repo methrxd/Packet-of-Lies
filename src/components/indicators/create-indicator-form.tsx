@@ -141,7 +141,7 @@ export function CreateIndicatorForm({ caseOptions }: CreateIndicatorFormProps) {
             <option value="">No linked case</option>
             {caseOptions.map((caseOption) => (
               <option key={caseOption.id} value={caseOption.id}>
-                {caseOption.caseNumber} · {caseOption.title}
+                {caseOption.caseNumber} | {caseOption.title}
               </option>
             ))}
           </select>

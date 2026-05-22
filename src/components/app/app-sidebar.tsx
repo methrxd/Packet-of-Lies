@@ -1,14 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Command, Sparkles } from "lucide-react";
+import { Dot } from "lucide-react";
 
 import type { AppRole } from "@/lib/auth";
 import { adminNavigation, primaryNavigation } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -53,73 +52,61 @@ export function AppSidebar({
     if (!item.requiredPermission) {
       return true;
     }
-
     if (isAdmin) {
       return true;
     }
-
     return permissions.includes(item.requiredPermission);
   });
 
   return (
-    <Sidebar
-      collapsible="icon"
-      className="border-sidebar-border/70 bg-sidebar"
-    >
+    <Sidebar collapsible="icon" className="border-sidebar-border/70 bg-sidebar">
       <SidebarHeader className="gap-4 px-3 py-4">
         <Link
           href="/dashboard"
-          className="flex items-center gap-3 rounded-xl border border-white/8 bg-[color:rgba(255,255,255,0.02)] px-2.5 py-2.5 transition-colors hover:bg-[color:rgba(255,255,255,0.05)]"
+          className="helix-shell rounded-2xl border-white/12 px-3 py-3 transition-colors hover:border-[var(--accent-border)]"
         >
-          <div className="flex size-10 items-center justify-center rounded-xl border border-[var(--accent-border)] bg-[var(--accent-soft)] text-primary">
-            <Command className="size-5" />
-          </div>
-          <div className="min-w-0 group-data-[collapsible=icon]:hidden">
-            <p className="font-heading text-sm font-semibold tracking-[0.12em] text-sidebar-foreground uppercase">
-              Packet of Lies
-            </p>
-            <p className="font-mono-ui mt-1 text-[11px] tracking-[0.18em] text-sidebar-foreground/55 uppercase">
-              Incident workspace
-            </p>
+          <div className="helix-grid-lines opacity-20" />
+          <div className="relative z-10 flex items-start justify-between gap-2">
+            <div>
+              <p className="helix-kicker">Packet of Lies</p>
+              <p className="mt-2 text-sm font-medium text-[var(--text-primary)]">
+                Malware Investigation Lab
+              </p>
+            </div>
+            <Dot className="size-5 text-primary" />
           </div>
         </Link>
 
-        <Button
-          variant="outline"
-          className="h-11 justify-start gap-2 border-white/10 bg-[color:rgba(255,255,255,0.02)] font-mono-ui text-[11px] tracking-[0.16em] text-[var(--text-primary)] uppercase hover:bg-[color:rgba(255,255,255,0.07)] hover:text-[var(--text-primary)]"
-        >
-          <div className="flex size-6 items-center justify-center overflow-hidden rounded-md border border-[var(--accent-border)] bg-[var(--bg-card)]">
+        <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-[color:rgba(255,255,255,0.02)] px-2.5 py-2">
+          <div className="flex size-9 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-[var(--bg-card)]">
             {avatarUrl ? (
               <Image
                 src={avatarUrl}
                 alt={`${displayName} avatar`}
-                width={24}
-                height={24}
+                width={36}
+                height={36}
                 className="size-full object-cover"
               />
             ) : (
-              <span className="text-[9px] text-[var(--text-secondary)]">{initials}</span>
+              <span className="font-mono-ui text-[10px] text-[var(--text-secondary)]">{initials}</span>
             )}
           </div>
-          <Sparkles className="size-4" />
-          <span className="group-data-[collapsible=icon]:hidden">
-            {displayName}
-          </span>
-        </Button>
+          <div className="min-w-0 group-data-[collapsible=icon]:hidden">
+            <p className="truncate text-sm font-medium text-[var(--text-primary)]">{displayName}</p>
+            <p className="helix-rail-label mt-1">{isAdmin ? "Administrator" : "Analyst"}</p>
+          </div>
+        </div>
       </SidebarHeader>
 
       <SidebarSeparator />
 
       <SidebarContent className="px-2">
         <SidebarGroup>
-          <SidebarGroupLabel className="font-mono-ui text-[10px] tracking-[0.2em] uppercase">
-            Core surfaces
-          </SidebarGroupLabel>
+          <SidebarGroupLabel className="helix-kicker">Workspace</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-            {visiblePrimaryNavigation.map((item, index) => {
-              const isActive =
-                pathname === item.href || pathname.startsWith(`${item.href}/`);
+              {visiblePrimaryNavigation.map((item, index) => {
+                const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
 
                 return (
                   <SidebarMenuItem key={item.href}>
@@ -128,9 +115,10 @@ export function AppSidebar({
                       isActive={isActive}
                       tooltip={item.label}
                       className={cn(
-                        "h-11 rounded-xl px-3 font-medium text-sidebar-foreground/76",
+                        "h-11 rounded-xl px-3 text-sidebar-foreground/78 transition-colors",
+                        "hover:bg-[color:rgba(255,255,255,0.06)] hover:text-sidebar-foreground",
                         isActive &&
-                          "bg-[color:rgba(2,249,109,0.08)] text-sidebar-foreground shadow-[inset_0_0_0_1px_rgba(2,249,109,0.16)]"
+                          "bg-[color:rgba(2,249,109,0.1)] text-sidebar-foreground shadow-[inset_0_0_0_1px_rgba(2,249,109,0.22)]"
                       )}
                     >
                       <span className="font-mono-ui w-5 text-[10px] text-[var(--text-muted)]">
@@ -148,14 +136,11 @@ export function AppSidebar({
 
         {isAdmin ? (
           <SidebarGroup>
-            <SidebarGroupLabel className="font-mono-ui text-[10px] tracking-[0.2em] uppercase">
-              Controls
-            </SidebarGroupLabel>
+            <SidebarGroupLabel className="helix-kicker">Administration</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {adminNavigation.map((item, index) => {
-                  const isActive =
-                    pathname === item.href || pathname.startsWith(`${item.href}/`);
+                  const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
 
                   return (
                     <SidebarMenuItem key={item.href}>
@@ -164,9 +149,10 @@ export function AppSidebar({
                         isActive={isActive}
                         tooltip={item.label}
                         className={cn(
-                          "h-10 rounded-xl px-3 text-sidebar-foreground/70",
+                          "h-10 rounded-xl px-3 text-sidebar-foreground/72 transition-colors",
+                          "hover:bg-[color:rgba(255,255,255,0.06)] hover:text-sidebar-foreground",
                           isActive &&
-                            "bg-[color:rgba(95,156,255,0.10)] text-sidebar-foreground shadow-[inset_0_0_0_1px_rgba(95,156,255,0.22)]"
+                            "bg-[color:rgba(95,156,255,0.1)] text-sidebar-foreground shadow-[inset_0_0_0_1px_rgba(95,156,255,0.24)]"
                         )}
                       >
                         <span className="font-mono-ui w-5 text-[10px] text-[var(--text-muted)]">
@@ -188,3 +174,4 @@ export function AppSidebar({
     </Sidebar>
   );
 }
+

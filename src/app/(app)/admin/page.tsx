@@ -1,15 +1,9 @@
 import { InviteUserForm } from "@/components/admin/invite-user-form";
 import { RoleManagementPanel } from "@/components/admin/role-management-panel";
-import { createClient } from "@/lib/supabase/server";
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { PageHeader } from "@/components/app/page-header";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function AdminPage() {
   const supabase = await createClient();
@@ -19,14 +13,8 @@ export default async function AdminPage() {
         .from("profiles")
         .select("id, email, display_name, username, role, role_id, profile_completed_at, created_at")
         .order("created_at", { ascending: false }),
-      supabase
-        .from("app_roles")
-        .select("id, name, description, is_system")
-        .order("name", { ascending: true }),
-      supabase
-        .from("app_permissions")
-        .select("key, label, description")
-        .order("key", { ascending: true }),
+      supabase.from("app_roles").select("id, name, description, is_system").order("name", { ascending: true }),
+      supabase.from("app_permissions").select("key, label, description").order("key", { ascending: true }),
       supabase.from("app_role_permissions").select("role_id, permission_key"),
     ]);
 
@@ -68,91 +56,58 @@ export default async function AdminPage() {
     <div className="space-y-6">
       <PageHeader
         eyebrow="Admin"
-        title="Access control"
+        title="Roles and permissions"
+        description="Manage user access, assign roles, and control capability permissions."
       />
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="border-white/6 bg-[var(--bg-card)]">
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card size="sm">
           <CardHeader>
-            <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
-              Users
-            </CardDescription>
-            <CardTitle className="font-heading text-xl">
-              {users.length} active user{users.length === 1 ? "" : "s"}
-            </CardTitle>
+            <CardDescription className="helix-kicker">Users</CardDescription>
+            <CardTitle>{users.length}</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 text-sm leading-7 text-[var(--text-secondary)]">
-            <p>Invite-only onboarding is active.</p>
-            <p>Profile completion is required before workspace access.</p>
-          </CardContent>
+          <CardContent className="text-xs text-[var(--text-muted)]">Registered workspace users</CardContent>
         </Card>
-
-        <Card className="border-white/6 bg-[var(--bg-card)]">
+        <Card size="sm">
           <CardHeader>
-            <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
-              Roles
-            </CardDescription>
-            <CardTitle className="font-heading text-xl">
-              Distribution
-            </CardTitle>
+            <CardDescription className="helix-kicker">Roles</CardDescription>
+            <CardTitle>{roleDefinitions.length}</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <Badge
-              variant="outline"
-              className="border-[var(--accent-border)] bg-[var(--accent-soft)] text-primary"
-            >
-              {
-                users.filter((user) => user.roleName === "admin").length
-              }{" "}
-              admin
-            </Badge>
+          <CardContent className="text-xs text-[var(--text-muted)]">Permission groups available</CardContent>
+        </Card>
+        <Card size="sm">
+          <CardHeader>
+            <CardDescription className="helix-kicker">Admins</CardDescription>
+            <CardTitle>{users.filter((user) => user.roleName === "admin").length}</CardTitle>
+          </CardHeader>
+          <CardContent>
             <Badge variant="outline" className="border-white/10 bg-white/4">
-              {users.filter((user) => user.roleName !== "admin").length} non-admin
+              Keep at least one active admin
             </Badge>
-            <Badge variant="outline" className="border-white/10 bg-white/4">
-              {
-                users.filter((user) => user.profileCompletedAt).length
-              }{" "}
-              completed
-            </Badge>
-            <p className="text-sm leading-7 text-[var(--text-secondary)]">
-              Keep at least one admin account active.
-            </p>
           </CardContent>
         </Card>
       </div>
 
-      <Card className="border-white/6 bg-[var(--bg-card)]">
+      <Card>
         <CardHeader>
-          <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
-            Invite
-          </CardDescription>
-          <CardTitle className="font-heading text-xl">
-            New user
-          </CardTitle>
+          <CardDescription className="helix-kicker">Invitation</CardDescription>
+          <CardTitle>Invite user</CardTitle>
         </CardHeader>
         <CardContent>
           <InviteUserForm roles={roleDefinitions} />
         </CardContent>
       </Card>
 
-      <Card className="border-white/6 bg-[var(--bg-card)]">
+      <Card>
         <CardHeader>
-          <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
-            Roles
-          </CardDescription>
-          <CardTitle className="font-heading text-xl">
-            Role management
-          </CardTitle>
+          <CardDescription className="helix-kicker">Access management</CardDescription>
+          <CardTitle>Role and user controls</CardTitle>
         </CardHeader>
         <CardContent>
-          <RoleManagementPanel
-            users={users}
-            roles={roleDefinitions}
-            permissions={permissions ?? []}
-          />
+          <RoleManagementPanel users={users} roles={roleDefinitions} permissions={permissions ?? []} />
         </CardContent>
       </Card>
     </div>
   );
 }
+

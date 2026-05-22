@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
+import { AsciiAmbient } from "@/components/app/ascii-ambient";
 import { PageHeader } from "@/components/app/page-header";
 import {
   CaseAssigneeForm,
@@ -432,11 +433,11 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
       <PageHeader
         eyebrow={snapshot.caseRecord.case_number}
         title={snapshot.caseRecord.title}
-        description={snapshot.caseRecord.summary ?? undefined}
+        description={snapshot.caseRecord.summary ?? "No summary provided yet."}
       />
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="border-white/6 bg-[var(--bg-card)]">
+        <Card>
           <CardHeader>
             <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
               Lifecycle
@@ -452,7 +453,7 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
           </CardContent>
         </Card>
 
-        <Card className="border-white/6 bg-[var(--bg-card)]">
+        <Card>
           <CardHeader>
             <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
               Ownership
@@ -469,7 +470,7 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
           </CardContent>
         </Card>
 
-        <Card className="border-white/6 bg-[var(--bg-card)]">
+        <Card>
           <CardHeader>
             <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
               Snapshot
@@ -506,7 +507,7 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <Card className="border-white/6 bg-[var(--bg-card)]">
+        <Card>
           <CardHeader>
             <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
               Findings
@@ -520,22 +521,22 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
             />
             <div className="space-y-3">
               {snapshot.findings.length === 0 ? (
-                <p className="rounded-2xl border border-white/6 bg-white/2 p-4 text-sm text-[var(--text-secondary)]">
+                <p className="helix-card text-sm text-[var(--text-secondary)]">
                   No findings recorded yet.
                 </p>
               ) : null}
               {snapshot.findings.map((finding) => (
-                <div key={finding.id} className="rounded-2xl border border-white/6 bg-white/2 p-4">
+                <div key={finding.id} className="helix-card">
                   <p className="text-sm font-medium text-[var(--text-primary)]">{finding.title}</p>
                   <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">{finding.detail}</p>
                   {finding.document_name ? (
                     <p className="mt-2 text-xs text-[var(--text-muted)]">
-                      Attached PDF: {finding.document_name} -{" "}
+                      Attached PDF: {finding.document_name} |{" "}
                       {Math.ceil((finding.document_size ?? 0) / 1024)} KB
                     </p>
                   ) : null}
                   <p className="mt-2 text-xs text-[var(--text-muted)]">
-                    {userMap.get(finding.created_by) ?? "Unknown user"} -{" "}
+                    {userMap.get(finding.created_by) ?? "Unknown user"} |{" "}
                     {formatDateTime(finding.created_at)}
                   </p>
                 </div>
@@ -544,7 +545,7 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
           </CardContent>
         </Card>
 
-        <Card className="border-white/6 bg-[var(--bg-card)]">
+        <Card>
           <CardHeader>
             <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
               Mitigations
@@ -558,15 +559,12 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
             />
             <div className="space-y-3">
               {snapshot.mitigations.length === 0 ? (
-                <p className="rounded-2xl border border-white/6 bg-white/2 p-4 text-sm text-[var(--text-secondary)]">
+                <p className="helix-card text-sm text-[var(--text-secondary)]">
                   No mitigation steps recorded yet.
                 </p>
               ) : null}
               {snapshot.mitigations.map((mitigation) => (
-                <div
-                  key={mitigation.id}
-                  className="rounded-2xl border border-white/6 bg-white/2 p-4"
-                >
+                <div key={mitigation.id} className="helix-card">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium text-[var(--text-primary)]">{mitigation.title}</p>
                     <Badge variant="outline" className="border-white/10 bg-white/4">
@@ -576,12 +574,12 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
                   <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">{mitigation.detail}</p>
                   {mitigation.document_name ? (
                     <p className="mt-2 text-xs text-[var(--text-muted)]">
-                      Attached PDF: {mitigation.document_name} -{" "}
+                      Attached PDF: {mitigation.document_name} |{" "}
                       {Math.ceil((mitigation.document_size ?? 0) / 1024)} KB
                     </p>
                   ) : null}
                   <p className="mt-2 text-xs text-[var(--text-muted)]">
-                    {userMap.get(mitigation.created_by) ?? "Unknown user"} -{" "}
+                    {userMap.get(mitigation.created_by) ?? "Unknown user"} |{" "}
                     {formatDateTime(mitigation.created_at)}
                   </p>
                 </div>
@@ -591,8 +589,8 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
         </Card>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-2">
-        <Card className="border-white/6 bg-[var(--bg-card)]">
+      <div className="grid gap-4 xl:grid-cols-[1fr_1fr]">
+        <Card>
           <CardHeader>
             <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
               Case comments
@@ -606,15 +604,15 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
             />
             <div className="space-y-3">
               {snapshot.comments.length === 0 ? (
-                <p className="rounded-2xl border border-white/6 bg-white/2 p-4 text-sm text-[var(--text-secondary)]">
+                <p className="helix-card text-sm text-[var(--text-secondary)]">
                   No comments yet.
                 </p>
               ) : null}
               {snapshot.comments.map((comment) => (
-                <div key={comment.id} className="rounded-2xl border border-white/6 bg-white/2 p-4">
+                <div key={comment.id} className="helix-card">
                   <p className="text-sm leading-6 text-[var(--text-secondary)]">{comment.body}</p>
                   <p className="mt-2 text-xs text-[var(--text-muted)]">
-                    {userMap.get(comment.created_by) ?? "Unknown user"} -{" "}
+                    {userMap.get(comment.created_by) ?? "Unknown user"} |{" "}
                     {formatDateTime(comment.created_at)}
                   </p>
                 </div>
@@ -623,18 +621,19 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
           </CardContent>
         </Card>
 
-        <Card className="border-white/6 bg-[var(--bg-card)]">
+        <Card>
           <CardHeader>
             <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
               Timeline
             </CardDescription>
-            <CardTitle className="font-heading text-xl">Live activity log</CardTitle>
+            <CardTitle className="font-heading text-xl">Activity stream</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {activityError ? (
               <p className="text-xs text-[var(--state-warning)]">{activityError}</p>
             ) : null}
-            <div className="h-[560px] overflow-y-auto rounded-2xl border border-white/6 bg-[color:rgba(0,0,0,0.42)] p-3">
+            <AsciiAmbient title="Realtime pipeline" className="p-3" />
+            <div className="helix-terminal h-[560px] overflow-y-auto p-3">
               {activity.activityLog.length === 0 ? (
                 <p className="rounded-xl border border-white/6 bg-white/2 p-4 text-sm text-[var(--text-secondary)]">
                   No activity logged yet.
@@ -644,15 +643,15 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
                 {activity.activityLog.map((entry) => (
                   <div
                     key={entry.id}
-                    className="rounded-lg border border-white/6 bg-[color:rgba(7,12,11,0.75)] px-3 py-2"
+                    className="rounded-lg border border-[color:rgba(2,249,109,0.25)] bg-[color:rgba(3,13,8,0.75)] px-3 py-2"
                   >
-                    <p className="font-mono-ui text-[11px] tracking-[0.08em] text-[var(--text-muted)] uppercase">
+                    <p className="font-mono-ui text-[11px] tracking-[0.08em] text-[color:rgba(164,255,206,0.72)] uppercase">
                       {formatDateTime(entry.created_at)}
                     </p>
-                    <p className="mt-1 font-mono-ui text-[13px] text-[var(--text-primary)]">
-                      {formatActionLabel(entry.action)}: {payloadSummary(entry)}
+                    <p className="mt-1 font-mono-ui text-[13px] text-[color:rgba(168,255,208,0.95)]">
+                      {formatActionLabel(entry.action)} :: {payloadSummary(entry)}
                     </p>
-                    <p className="mt-1 text-xs text-[var(--text-secondary)]">
+                    <p className="mt-1 text-xs text-[color:rgba(172,224,194,0.88)]">
                       By {userMap.get(entry.actor_user_id) ?? "Unknown user"}
                     </p>
                   </div>
@@ -663,7 +662,7 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
         </Card>
       </div>
 
-      <Card className="border-white/6 bg-[var(--bg-card)]">
+      <Card>
         <CardHeader>
           <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
             Linked indicators
@@ -672,12 +671,12 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
         </CardHeader>
         <CardContent className="space-y-3">
           {snapshot.indicators.length === 0 ? (
-            <p className="rounded-2xl border border-white/6 bg-white/2 p-4 text-sm text-[var(--text-secondary)]">
+            <p className="helix-card text-sm text-[var(--text-secondary)]">
               No indicators linked yet.
             </p>
           ) : null}
           {snapshot.indicators.map((item) => (
-            <div key={item.id} className="rounded-2xl border border-white/6 bg-white/2 p-4">
+            <div key={item.id} className="helix-card">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="outline" className="border-white/10 bg-white/4">
                   {item.indicator_type}

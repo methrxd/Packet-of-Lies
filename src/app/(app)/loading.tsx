@@ -1,19 +1,17 @@
-import { Skeleton } from "@/components/ui/skeleton";
+import { AsciiAmbient } from "@/components/app/ascii-ambient";
 
 export default function AppLoading() {
   return (
-    <div className="space-y-6">
-      <div className="space-y-3">
-        <Skeleton className="h-3 w-28 bg-white/6" />
-        <Skeleton className="h-10 w-72 bg-white/8" />
-        <Skeleton className="h-4 w-full max-w-2xl bg-white/6" />
+    <div className="flex min-h-[70svh] items-center justify-center">
+      <div className="helix-shell w-full max-w-3xl p-6 md:p-8">
+        <div className="helix-grid-lines opacity-20" />
+        <div className="relative z-10 space-y-5">
+          <p className="helix-kicker">Loading workspace</p>
+          <h2 className="helix-headline text-2xl md:text-3xl">Preparing live investigation data</h2>
+          <AsciiAmbient title="Startup stream" />
+        </div>
       </div>
-      <div className="grid gap-4 md:grid-cols-3">
-        {Array.from({ length: 3 }).map((_, index) => (
-          <Skeleton key={index} className="h-36 rounded-2xl bg-white/6" />
-        ))}
-      </div>
-      <Skeleton className="h-[26rem] rounded-3xl bg-white/6" />
     </div>
   );
 }
+

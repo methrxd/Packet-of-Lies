@@ -2,18 +2,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { CreateCaseForm } from "@/components/cases/create-case-form";
+import { PageHeader } from "@/components/app/page-header";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAuthContext, hasPermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import type { CasePriority, CaseSeverity, CaseStatus } from "@/lib/workflow";
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { PageHeader } from "@/components/app/page-header";
 
 const severityClassMap: Record<CaseSeverity, string> = {
   low: "border-white/10 bg-white/4 text-[var(--text-secondary)]",
@@ -48,136 +42,76 @@ export default async function CasesPage() {
     .from("cases")
     .select("id, case_number, title, status, severity, priority, created_at")
     .order("created_at", { ascending: false })
-    .limit(25);
+    .limit(32);
 
   const list = cases ?? [];
-  const statusCounts = list.reduce<Record<CaseStatus, number>>(
-    (acc, item) => {
-      const status = item.status as CaseStatus;
-      acc[status] = (acc[status] ?? 0) + 1;
-      return acc;
-    },
-    {
-      new: 0,
-      triage: 0,
-      investigating: 0,
-      contained: 0,
-      resolved: 0,
-      archived: 0,
-    }
-  );
 
   return (
     <div className="space-y-6">
       <PageHeader
         eyebrow="Cases"
-        title="Caseboard"
+        title="Investigation caseboard"
+        description="Open a case, assign severity and priority, and move through lifecycle states."
       />
 
-      <div className="grid gap-4 xl:grid-cols-[1.2fr_1.8fr]">
-        <Card className="border-white/6 bg-[var(--bg-card)]">
+      <div className="grid gap-4 xl:grid-cols-[1fr_1.4fr]">
+        <Card>
           <CardHeader>
-            <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
-              Case intake
-            </CardDescription>
-            <CardTitle className="font-heading text-xl">
-              Open investigation record
-            </CardTitle>
+            <CardDescription className="helix-kicker">New case intake</CardDescription>
+            <CardTitle>Create investigation</CardTitle>
           </CardHeader>
           <CardContent>
             <CreateCaseForm />
           </CardContent>
         </Card>
 
-        <Card className="border-white/6 bg-[var(--bg-card)]">
+        <Card>
           <CardHeader>
-            <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
-              Lifecycle telemetry
-            </CardDescription>
-            <CardTitle className="font-heading text-xl">
-              Queue state snapshot
-            </CardTitle>
+            <CardDescription className="helix-kicker">Queue</CardDescription>
+            <CardTitle>Latest cases</CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {(
-              Object.entries(statusCounts) as Array<[CaseStatus, number]>
-            ).map(([status, count]) => (
+          <CardContent className="space-y-3">
+            {list.length === 0 ? (
+              <div className="helix-card text-sm text-[var(--text-secondary)]">
+                No cases yet. Create the first case from the form.
+              </div>
+            ) : null}
+
+            {list.map((item) => (
               <div
-                key={status}
-                className="rounded-2xl border border-white/6 bg-white/2 p-4"
+                key={item.id}
+                className="helix-card flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
               >
-                <p className="font-mono-ui text-[10px] tracking-[0.18em] text-[var(--text-muted)] uppercase">
-                  {formatStatus(status)}
-                </p>
-                <p className="mt-3 text-2xl font-semibold text-[var(--text-primary)]">
-                  {count}
-                </p>
-                <p className="mt-1 text-xs text-[var(--text-muted)]">active cases</p>
+                <div>
+                  <p className="helix-kicker">{item.case_number}</p>
+                  <p className="mt-1 text-base font-medium text-[var(--text-primary)]">{item.title}</p>
+                  <p className="mt-1 text-xs text-[var(--text-muted)]">
+                    Opened {new Date(item.created_at).toLocaleString()}
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="outline" className="border-white/10 bg-white/4">
+                    {formatStatus(item.status as CaseStatus)}
+                  </Badge>
+                  <Badge variant="outline" className={severityClassMap[item.severity as CaseSeverity]}>
+                    {item.severity}
+                  </Badge>
+                  <Badge variant="outline" className={priorityClassMap[item.priority as CasePriority]}>
+                    {item.priority}
+                  </Badge>
+                  <Link
+                    href={`/cases/${item.id}`}
+                    className="inline-flex h-9 items-center justify-center rounded-full border border-white/12 bg-[color:rgba(255,255,255,0.03)] px-4 text-xs text-[var(--text-primary)] transition-colors hover:bg-[color:rgba(255,255,255,0.08)]"
+                  >
+                    Open
+                  </Link>
+                </div>
               </div>
             ))}
           </CardContent>
         </Card>
       </div>
-
-      <Card className="border-white/6 bg-[var(--bg-card)]">
-        <CardHeader>
-          <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
-            Active cases
-          </CardDescription>
-          <CardTitle className="font-heading text-xl">
-            Latest investigation records
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {list.length === 0 ? (
-            <div className="rounded-2xl border border-white/6 bg-white/2 p-4 text-sm text-[var(--text-secondary)]">
-              No cases yet. Create the first case from the form above.
-            </div>
-          ) : null}
-
-          {list.map((item) => (
-            <div
-              key={item.id}
-              className="flex flex-col gap-4 rounded-2xl border border-white/6 bg-white/2 p-4 md:flex-row md:items-center md:justify-between"
-            >
-              <div>
-                <p className="font-mono-ui text-[10px] tracking-[0.18em] text-[var(--text-muted)] uppercase">
-                  {item.case_number}
-                </p>
-                <p className="mt-2 text-base font-medium text-[var(--text-primary)]">
-                  {item.title}
-                </p>
-                <p className="mt-2 text-sm text-[var(--text-secondary)]">
-                  Opened {new Date(item.created_at).toLocaleString()}
-                </p>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="outline" className="border-white/10 bg-white/4">
-                  {formatStatus(item.status as CaseStatus)}
-                </Badge>
-                <Badge
-                  variant="outline"
-                  className={severityClassMap[item.severity as CaseSeverity]}
-                >
-                  {item.severity}
-                </Badge>
-                <Badge
-                  variant="outline"
-                  className={priorityClassMap[item.priority as CasePriority]}
-                >
-                  {item.priority}
-                </Badge>
-                <Link
-                  href={`/cases/${item.id}`}
-                  className="inline-flex h-8 items-center justify-center rounded-lg border border-white/10 bg-white/2 px-3 text-xs text-[var(--text-primary)] transition-colors hover:bg-white/4"
-                >
-                  Open case
-                </Link>
-              </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
     </div>
   );
 }
+

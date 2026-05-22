@@ -1,16 +1,11 @@
 import { redirect } from "next/navigation";
 import { UserRoundCheck } from "lucide-react";
 
+import { AsciiAmbient } from "@/components/app/ascii-ambient";
 import { CompleteProfileForm } from "@/components/auth/complete-profile-form";
-import { createClient } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -38,31 +33,40 @@ export default async function CompleteProfilePage() {
   const email = profile?.email ?? user.email ?? "unknown@packet-of-lies.local";
 
   return (
-    <main className="relative flex min-h-svh items-center justify-center px-4 py-10">
-      <div className="pointer-events-none absolute inset-0 bg-grid-muted opacity-25" />
-      <Card className="relative z-10 w-full max-w-xl border-white/8 bg-[var(--bg-card)] panel-shadow">
-        <CardHeader className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Badge
-              variant="outline"
-              className="border-[var(--accent-border)] bg-[var(--accent-soft)] font-mono-ui text-[10px] tracking-[0.18em] text-primary uppercase"
-            >
-              Account setup
+    <main className="relative min-h-svh px-4 py-10 md:px-8 md:py-12">
+      <div className="helix-grid-lines opacity-20" />
+      <div className="relative z-10 mx-auto grid w-full max-w-6xl gap-5 lg:grid-cols-[1fr_1fr]">
+        <section className="helix-shell p-6 md:p-8">
+          <div className="helix-grid-lines opacity-20" />
+          <div className="relative z-10 space-y-5">
+            <Badge variant="outline" className="helix-chip">
+              Profile completion
             </Badge>
-            <UserRoundCheck className="size-5 text-primary" />
+            <h1 className="helix-headline">Finalize your analyst profile</h1>
+            <p className="helix-copy">
+              Set your username and credentials before entering the investigation workspace.
+            </p>
+            <AsciiAmbient title="Identity stream" />
           </div>
-          <CardTitle className="font-heading text-2xl">
-            Complete your analyst profile
-          </CardTitle>
-          <CardDescription className="leading-6 text-[var(--text-secondary)]">
-            Choose your username, set a strong password, and optionally upload a
-            profile image before entering the workspace.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <CompleteProfileForm email={email} defaultUsername={profile?.username} />
-        </CardContent>
-      </Card>
+        </section>
+
+        <Card className="panel-shadow">
+          <CardHeader>
+            <div className="mb-3 flex items-center justify-between">
+              <Badge variant="outline" className="helix-chip">
+                Complete account
+              </Badge>
+              <UserRoundCheck className="size-5 text-primary" />
+            </div>
+            <CardTitle>Set profile details</CardTitle>
+            <CardDescription>This step is required before app access.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <CompleteProfileForm email={email} defaultUsername={profile?.username} />
+          </CardContent>
+        </Card>
+      </div>
     </main>
   );
 }
+

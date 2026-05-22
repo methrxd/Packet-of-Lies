@@ -49,7 +49,7 @@ export function GenerateReportForm({ caseOptions }: GenerateReportFormProps) {
           </option>
           {caseOptions.map((caseOption) => (
             <option key={caseOption.id} value={caseOption.id}>
-              {caseOption.caseNumber} · {caseOption.title}
+              {caseOption.caseNumber} | {caseOption.title}
             </option>
           ))}
         </select>

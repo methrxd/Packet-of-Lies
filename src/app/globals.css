@@ -144,9 +144,9 @@
   body {
     @apply min-h-full bg-background font-sans text-foreground;
     background-image:
-      radial-gradient(circle at 12% 0%, rgba(2, 249, 109, 0.09), transparent 28%),
-      radial-gradient(circle at 92% 8%, rgba(2, 249, 109, 0.06), transparent 32%),
-      linear-gradient(180deg, rgba(12, 22, 13, 0.88), rgba(8, 8, 8, 0.98));
+      radial-gradient(circle at 8% -4%, rgba(2, 249, 109, 0.12), transparent 27%),
+      radial-gradient(circle at 88% 0%, rgba(2, 249, 109, 0.1), transparent 26%),
+      linear-gradient(180deg, rgba(12, 22, 13, 0.92), rgba(8, 8, 8, 0.985));
     background-attachment: fixed;
   }
 }
@@ -173,6 +173,41 @@
     box-shadow: var(--shadow-panel);
   }
 
+  .helix-shell {
+    @apply relative overflow-hidden rounded-3xl border;
+    border-color: rgba(255, 255, 255, 0.1);
+    background: linear-gradient(
+      180deg,
+      rgba(15, 16, 18, 0.95) 0%,
+      rgba(11, 13, 14, 0.95) 100%
+    );
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      0 28px 60px rgba(0, 0, 0, 0.42);
+  }
+
+  .helix-shell::before {
+    content: "";
+    @apply pointer-events-none absolute inset-0;
+    background:
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.04) 0%,
+        rgba(255, 255, 255, 0) 24%
+      ),
+      radial-gradient(circle at 100% 0%, rgba(2, 249, 109, 0.14), transparent 46%);
+  }
+
+  .helix-grid-lines {
+    @apply pointer-events-none absolute inset-0;
+    background-image:
+      linear-gradient(rgba(2, 249, 109, 0.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(2, 249, 109, 0.055) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.05));
+    opacity: 0.24;
+  }
+
   .glass-shell {
     background: color-mix(in srgb, var(--bg-card) 88%, transparent);
     backdrop-filter: blur(12px);
@@ -182,5 +217,90 @@
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.03),
       0 0 0 1px rgba(255, 255, 255, 0.06);
+  }
+
+  .helix-kicker {
+    @apply text-[10px] tracking-[0.3em] text-[var(--text-muted)] uppercase;
+    font-family:
+      "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;
+  }
+
+  .helix-headline {
+    @apply font-heading text-3xl leading-[1.04] font-semibold tracking-[-0.02em] text-[var(--text-primary)] md:text-[2.7rem];
+  }
+
+  .helix-copy {
+    @apply text-sm leading-7 text-[var(--text-secondary)] md:text-[15px];
+  }
+
+  .helix-chip {
+    @apply inline-flex items-center rounded-full border px-3 py-1 text-[10px] tracking-[0.14em] uppercase;
+    font-family:
+      "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;
+    border-color: rgba(2, 249, 109, 0.25);
+    background: rgba(2, 249, 109, 0.08);
+    color: var(--accent-primary);
+  }
+
+  .helix-rail-label {
+    @apply text-[11px] tracking-[0.16em] uppercase;
+    font-family:
+      "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;
+    color: var(--text-muted);
+  }
+
+  .helix-section {
+    @apply relative overflow-hidden rounded-3xl border p-5 md:p-7;
+    border-color: rgba(255, 255, 255, 0.1);
+    background: linear-gradient(
+      180deg,
+      rgba(15, 16, 18, 0.95) 0%,
+      rgba(11, 13, 14, 0.95) 100%
+    );
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      0 28px 60px rgba(0, 0, 0, 0.42);
+  }
+
+  .helix-card {
+    @apply rounded-2xl border p-4 md:p-5;
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .helix-terminal {
+    @apply rounded-2xl border text-[12px] leading-6;
+    font-family:
+      "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;
+    border-color: rgba(2, 249, 109, 0.3);
+    background:
+      linear-gradient(180deg, rgba(3, 16, 9, 0.8), rgba(4, 10, 7, 0.92));
+    color: rgba(168, 255, 208, 0.95);
+  }
+
+  .ascii-noise {
+    background-image:
+      linear-gradient(0deg, transparent 0 4px, rgba(2, 249, 109, 0.03) 4px 5px),
+      linear-gradient(90deg, transparent 0 9px, rgba(2, 249, 109, 0.02) 9px 10px);
+    background-size: 100% 5px, 10px 100%;
+  }
+
+  .ascii-scanline {
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(2, 249, 109, 0.11) 48%,
+      transparent 100%
+    );
+    animation: ascii-scan 4.2s linear infinite;
+  }
+}
+
+@keyframes ascii-scan {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
   }
 }

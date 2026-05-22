@@ -214,7 +214,7 @@ export function RoleManagementPanel({
                   @{user.username ?? "pending-profile"}
                 </p>
                 <p className="font-mono-ui mt-2 text-[10px] tracking-[0.16em] text-[var(--text-muted)] uppercase">
-                  Joined {new Date(user.createdAt).toLocaleDateString()} · {user.profileCompletedAt ? "Profile completed" : "Profile pending"}
+                  Joined {new Date(user.createdAt).toLocaleDateString()} | {user.profileCompletedAt ? "Profile completed" : "Profile pending"}
                 </p>
               </div>
 
