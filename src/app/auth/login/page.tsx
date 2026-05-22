@@ -52,13 +52,12 @@ export default async function LoginPage() {
               <ShieldCheck className="size-5 text-primary" />
             </div>
             <CardTitle className="font-heading max-w-2xl text-3xl leading-tight md:text-4xl">
-              Malware case operations
+              Security operations
               <br />
-              for analyst teams
+              workspace
             </CardTitle>
             <CardDescription className="max-w-xl text-sm leading-7 text-[var(--text-secondary)] normal-case tracking-normal">
-              A university-grade investigation platform for detecting, analyzing,
-              documenting, and mitigating malware incidents with clear workflow controls.
+              Case triage, analysis, mitigation, and reporting.
             </CardDescription>
             <div className="grid gap-3 md:grid-cols-2">
               <div className="rounded-2xl border border-white/8 bg-[color:rgba(255,255,255,0.02)] p-4">
@@ -66,7 +65,7 @@ export default async function LoginPage() {
                   01 Workflow
                 </p>
                 <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
-                  Structured lifecycle from intake to triage, investigation, containment, and resolution.
+                  Structured lifecycle: intake, triage, investigation, containment, resolution.
                 </p>
               </div>
               <div className="rounded-2xl border border-white/8 bg-[color:rgba(255,255,255,0.02)] p-4">
@@ -74,7 +73,7 @@ export default async function LoginPage() {
                   02 Evidence
                 </p>
                 <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
-                  Findings, response actions, and timeline logs with role-based access controls.
+                  Findings, response actions, and timeline logs.
                 </p>
               </div>
               <div className="rounded-2xl border border-white/8 bg-[color:rgba(255,255,255,0.02)] p-4">
@@ -82,7 +81,7 @@ export default async function LoginPage() {
                   03 Intelligence
                 </p>
                 <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
-                  IOC registry and reporting to align with malware analysis goals in your PRD.
+                  IOC registry and report generation.
                 </p>
               </div>
               <div className="rounded-2xl border border-white/8 bg-[color:rgba(255,255,255,0.02)] p-4">
@@ -90,7 +89,7 @@ export default async function LoginPage() {
                   04 Recovery
                 </p>
                 <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
-                  OTP-verified credential recovery and auditable operations for secure continuity.
+                  OTP-based password recovery.
                 </p>
               </div>
             </div>
@@ -110,7 +109,7 @@ export default async function LoginPage() {
             </div>
             <CardTitle className="font-heading text-2xl">Sign in</CardTitle>
             <CardDescription className="leading-7 text-[var(--text-secondary)] normal-case tracking-normal">
-              Use your assigned account credentials or recover access with OTP verification.
+              Sign in or recover account access.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -118,7 +117,7 @@ export default async function LoginPage() {
             <div className="mt-4 rounded-xl border border-white/8 bg-[color:rgba(255,255,255,0.02)] p-3 text-xs leading-5 text-[var(--text-muted)]">
               <p className="flex items-start gap-2">
                 <ClipboardCheck className="mt-0.5 size-4 shrink-0 text-primary" />
-                Account security note: OTP reset codes are valid for a short window and must match exactly before password updates are allowed.
+                OTP code must match before password update.
               </p>
             </div>
           </CardContent>

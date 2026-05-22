@@ -69,15 +69,14 @@ export default async function SubmissionsPage() {
     <div className="space-y-6">
       <PageHeader
         eyebrow="Submissions"
-        title="Senior evidence review"
-        description="Review cross-case evidence submissions and validation states. Case-level document uploads now happen directly from the case workspace."
+        title="Submission review"
       />
 
       <div className="grid gap-4">
         <Card className="border-white/6 bg-[var(--bg-card)]">
           <CardHeader>
             <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
-              Validation queue
+              Queue
             </CardDescription>
             <CardTitle className="font-heading text-xl">
               Latest submissions
@@ -152,30 +151,6 @@ export default async function SubmissionsPage() {
           </CardContent>
         </Card>
       </div>
-
-      <Card className="border-white/6 bg-[var(--bg-shell)]">
-        <CardHeader>
-          <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
-            Pipeline notes
-          </CardDescription>
-          <CardTitle className="font-heading text-xl">
-            Workflow behavior
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-3 md:grid-cols-3">
-            <div className="rounded-2xl border border-white/6 bg-white/2 p-4 text-sm leading-6 text-[var(--text-secondary)]">
-              Submissions are private and only visible to roles with `view_submissions`.
-            </div>
-            <div className="rounded-2xl border border-white/6 bg-white/2 p-4 text-sm leading-6 text-[var(--text-secondary)]">
-              Case investigation documents are now uploaded directly in Findings and Response Actions.
-            </div>
-            <div className="rounded-2xl border border-white/6 bg-white/2 p-4 text-sm leading-6 text-[var(--text-secondary)]">
-              This screen is intended for senior review and governance across submissions.
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

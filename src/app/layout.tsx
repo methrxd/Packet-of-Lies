@@ -12,8 +12,7 @@ export const metadata: Metadata = {
     default: "Packet of Lies",
     template: "%s | Packet of Lies",
   },
-  description:
-    "Packet of Lies is a malware investigation operations platform for internal security teams.",
+  description: "Security operations workspace",
 };
 
 export default function RootLayout({

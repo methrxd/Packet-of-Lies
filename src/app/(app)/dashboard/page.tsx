@@ -1,148 +1,158 @@
-import { ArrowUpRight, Binary, DatabaseZap, Radar, ShieldCheck } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, Radar, ShieldCheck, Sparkles, Workflow } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { PageHeader } from "@/components/app/page-header";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { createClient } from "@/lib/supabase/server";
+import type { CaseStatus } from "@/lib/workflow";
 
-const foundationMetrics = [
-  {
-    label: "Stack health",
-    value: "Next.js + Supabase",
-    detail: "SSR auth, secured APIs, and live investigation streams",
-    icon: Binary,
-  },
-  {
-    label: "Detection flow",
-    value: "Case-first workflow",
-    detail: "Findings, mitigations, comments, and activity timeline are connected",
-    icon: DatabaseZap,
-  },
-  {
-    label: "Access posture",
-    value: "Role-gated",
-    detail: "Invite onboarding with role-based permissions and audit coverage",
-    icon: ShieldCheck,
-  },
-];
+type CaseLite = {
+  id: string;
+  case_number: string;
+  title: string;
+  status: CaseStatus;
+  updated_at: string;
+};
 
-export default function DashboardPage() {
+const statusClass: Record<CaseStatus, string> = {
+  new: "border-white/10 bg-white/5 text-[var(--text-secondary)]",
+  triage: "border-[color:rgba(95,156,255,0.25)] bg-[color:rgba(95,156,255,0.12)] text-[var(--state-info)]",
+  investigating:
+    "border-[color:rgba(2,249,109,0.25)] bg-[color:rgba(2,249,109,0.12)] text-primary",
+  contained:
+    "border-[color:rgba(255,184,0,0.25)] bg-[color:rgba(255,184,0,0.12)] text-[var(--state-warning)]",
+  resolved: "border-white/10 bg-white/5 text-[var(--text-secondary)]",
+  archived: "border-white/10 bg-white/5 text-[var(--text-muted)]",
+};
+
+export default async function DashboardPage() {
+  const supabase = await createClient();
+
+  const [
+    { count: caseCount },
+    { count: openCaseCount },
+    { count: indicatorCount },
+    { count: reportCount },
+    { data: latestCases },
+    { data: latestActivity },
+  ] = await Promise.all([
+    supabase.from("cases").select("id", { count: "exact", head: true }),
+    supabase
+      .from("cases")
+      .select("id", { count: "exact", head: true })
+      .in("status", ["new", "triage", "investigating", "contained"]),
+    supabase.from("indicators").select("id", { count: "exact", head: true }),
+    supabase.from("reports").select("id", { count: "exact", head: true }),
+    supabase
+      .from("cases")
+      .select("id, case_number, title, status, updated_at")
+      .order("updated_at", { ascending: false })
+      .limit(8),
+    supabase
+      .from("case_activity_log")
+      .select("id, action, created_at")
+      .order("created_at", { ascending: false })
+      .limit(8),
+  ]);
+
+  const metrics = [
+    { label: "Cases", value: caseCount ?? 0, icon: Workflow },
+    { label: "Open", value: openCaseCount ?? 0, icon: Radar },
+    { label: "Indicators", value: indicatorCount ?? 0, icon: Sparkles },
+    { label: "Reports", value: reportCount ?? 0, icon: ShieldCheck },
+  ];
+
+  const caseRows = (latestCases ?? []) as CaseLite[];
+
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Operations Board"
-        title="Malware analysis command view"
-        description="A single operational board for your university project demonstration: monitor readiness, current investigation capacity, and security posture in real time."
+        eyebrow="Dashboard"
+        title="Operations"
         actions={
           <Button className="h-10 rounded-xl bg-primary px-4 text-primary-foreground hover:bg-[var(--accent-primary-hover)]">
-            Open active cases
-            <ArrowUpRight className="size-4" />
+            <Link href="/cases" className="inline-flex items-center gap-2">
+              Open caseboard
+              <ArrowRight className="size-4" />
+            </Link>
           </Button>
         }
       />
 
-      <div className="grid gap-4 xl:grid-cols-[1.75fr_1fr]">
-        <div className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-3">
-            {foundationMetrics.map((metric) => (
-              <Card
-                key={metric.label}
-                className="border-white/6 bg-[var(--bg-card)] panel-shadow"
-              >
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] text-[var(--text-muted)] uppercase">
-                      {metric.label}
-                    </CardDescription>
-                    <metric.icon className="size-4 text-primary" />
-                  </div>
-                  <CardTitle className="font-heading text-2xl text-[var(--text-primary)]">
-                    {metric.value}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="text-sm leading-6 text-[var(--text-secondary)]">
-                  {metric.detail}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          <Card className="border-white/6 bg-[var(--bg-card)]">
-            <CardHeader>
-              <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
-                Coverage map
-              </CardDescription>
-              <CardTitle className="font-heading text-xl">
-                PRD objective coverage snapshot
-              </CardTitle>
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {metrics.map((metric) => (
+          <Card key={metric.label}>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <p className="font-mono-ui text-[10px] tracking-[0.2em] text-[var(--text-muted)] uppercase">
+                {metric.label}
+              </p>
+              <metric.icon className="size-4 text-primary" />
             </CardHeader>
-            <CardContent className="grid gap-3 text-sm text-[var(--text-secondary)] md:grid-cols-2">
-              <div className="rounded-2xl border border-white/6 bg-white/2 p-4">
-                Detection pipeline: cases, indicators, and report generation are live.
-              </div>
-              <div className="rounded-2xl border border-white/6 bg-white/2 p-4">
-                Analysis trail: findings, comments, and timeline logging are connected.
-              </div>
-              <div className="rounded-2xl border border-white/6 bg-white/2 p-4">
-                Response model: mitigation tracking supports lifecycle decisions.
-              </div>
-              <div className="rounded-2xl border border-white/6 bg-white/2 p-4">
-                Governance: role permissions and admin controls are actively enforced.
-              </div>
-              <div className="rounded-2xl border border-white/6 bg-white/2 p-4">
-                Recovery readiness: OTP account reset and secure onboarding are enabled.
-              </div>
+            <CardContent>
+              <p className="text-4xl font-semibold tracking-tight text-[var(--text-primary)]">
+                {metric.value}
+              </p>
             </CardContent>
           </Card>
-        </div>
+        ))}
+      </section>
 
-        <Card className="border-white/6 bg-[var(--bg-shell)]">
+      <div className="grid gap-4 xl:grid-cols-2">
+        <Card>
           <CardHeader>
-            <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
-              Execution focus
-            </CardDescription>
-            <CardTitle className="font-heading text-xl">
-              Live priorities
-            </CardTitle>
+            <CardTitle>Latest cases</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="rounded-2xl border border-white/6 bg-[var(--bg-card)] p-4">
-              <p className="font-mono-ui text-[10px] tracking-[0.18em] text-[var(--text-muted)] uppercase">
-                Access model
+          <CardContent className="space-y-2">
+            {caseRows.length === 0 ? (
+              <p className="rounded-xl border border-white/8 bg-white/3 px-3 py-2 text-sm text-[var(--text-secondary)]">
+                No cases yet.
               </p>
-              <p className="mt-3 text-2xl font-semibold text-[var(--text-primary)]">
-                Invite only
-              </p>
-              <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
-                All operational routes require authentication and profile
-                completion before access is granted.
-              </p>
-            </div>
+            ) : null}
+            {caseRows.map((item) => (
+              <Link
+                key={item.id}
+                href={`/cases/${item.id}`}
+                className="flex items-center justify-between rounded-xl border border-white/8 bg-[color:rgba(255,255,255,0.02)] px-3 py-2 transition-colors hover:bg-[color:rgba(255,255,255,0.06)]"
+              >
+                <div>
+                  <p className="font-mono-ui text-[10px] tracking-[0.16em] text-[var(--text-muted)] uppercase">
+                    {item.case_number}
+                  </p>
+                  <p className="mt-1 text-sm text-[var(--text-primary)]">{item.title}</p>
+                </div>
+                <Badge variant="outline" className={statusClass[item.status]}>
+                  {item.status}
+                </Badge>
+              </Link>
+            ))}
+          </CardContent>
+        </Card>
 
-            <div className="rounded-3xl border border-white/6 bg-grid-muted bg-[var(--bg-card)] p-5">
-              <p className="font-mono-ui text-[10px] tracking-[0.18em] text-[var(--text-muted)] uppercase">
-                Next review checkpoints
+        <Card>
+          <CardHeader>
+            <CardTitle>Activity stream</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {(latestActivity ?? []).length === 0 ? (
+              <p className="rounded-xl border border-white/8 bg-white/3 px-3 py-2 text-sm text-[var(--text-secondary)]">
+                No activity yet.
               </p>
-              <ul className="mt-4 space-y-3 text-sm leading-6 text-[var(--text-secondary)]">
-                <li className="flex items-center gap-2">
-                  <Radar className="size-4 text-primary" />
-                  Validate malware analysis workflow against live demo scenario.
-                </li>
-                <li className="flex items-center gap-2">
-                  <Radar className="size-4 text-primary" />
-                  Finalize report pack for academic submission review.
-                </li>
-                <li className="flex items-center gap-2">
-                  <Radar className="size-4 text-primary" />
-                  Complete UX consistency pass across all operational pages.
-                </li>
-              </ul>
-            </div>
+            ) : null}
+            {(latestActivity ?? []).map((row) => (
+              <div
+                key={row.id}
+                className="rounded-xl border border-white/8 bg-[color:rgba(255,255,255,0.02)] px-3 py-2"
+              >
+                <p className="font-mono-ui text-[11px] text-[var(--text-primary)] uppercase">
+                  {row.action.replaceAll("_", " ")}
+                </p>
+                <p className="mt-1 text-xs text-[var(--text-muted)]">
+                  {new Date(row.created_at).toLocaleString()}
+                </p>
+              </div>
+            ))}
           </CardContent>
         </Card>
       </div>

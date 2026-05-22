@@ -71,8 +71,7 @@ export default async function CasesPage() {
     <div className="space-y-6">
       <PageHeader
         eyebrow="Cases"
-        title="Investigation caseboard"
-        description="Open new malware investigations, track lifecycle progression, and keep severity and priority aligned with response urgency."
+        title="Caseboard"
       />
 
       <div className="grid gap-4 xl:grid-cols-[1.2fr_1.8fr]">

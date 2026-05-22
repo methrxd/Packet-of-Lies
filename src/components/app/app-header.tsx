@@ -32,11 +32,11 @@ export function AppHeader({
 
         <div className="hidden items-center gap-3 md:flex">
           <p className="font-mono-ui text-[10px] tracking-[0.24em] text-[var(--text-muted)] uppercase">
-            Investigation Suite
+            Operations
           </p>
           <span className="h-4 w-px bg-white/12" />
           <p className="text-sm text-[var(--text-secondary)]">
-            Malware Analysis and Mitigation
+            Case Workspace
           </p>
         </div>
 

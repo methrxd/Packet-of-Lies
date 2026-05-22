@@ -432,10 +432,7 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
       <PageHeader
         eyebrow={snapshot.caseRecord.case_number}
         title={snapshot.caseRecord.title}
-        description={
-          snapshot.caseRecord.summary ||
-          "No summary yet. Add findings, response actions, and comments to build the incident narrative."
-        }
+        description={snapshot.caseRecord.summary ?? undefined}
       />
 
       <div className="grid gap-4 lg:grid-cols-3">

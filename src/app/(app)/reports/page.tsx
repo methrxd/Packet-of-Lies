@@ -74,18 +74,17 @@ export default async function ReportsPage() {
     <div className="space-y-6">
       <PageHeader
         eyebrow="Reports"
-        title="Incident reporting workspace"
-        description="Generate and store case reports with evidence highlights, observable findings, and operational recommendations."
+        title="Report studio"
       />
 
       <div className="grid gap-4 xl:grid-cols-[1.1fr_1.9fr]">
         <Card className="border-white/6 bg-[var(--bg-card)]">
           <CardHeader>
             <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
-              Report generation
+              Generate
             </CardDescription>
             <CardTitle className="font-heading text-xl">
-              Build case report snapshot
+              New report
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -96,10 +95,10 @@ export default async function ReportsPage() {
         <Card className="border-white/6 bg-[var(--bg-card)]">
           <CardHeader>
             <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
-              Stored reports
+              Metrics
             </CardDescription>
             <CardTitle className="font-heading text-xl">
-              Latest generated outputs
+              Stored reports
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-3">
@@ -136,10 +135,10 @@ export default async function ReportsPage() {
       <Card className="border-white/6 bg-[var(--bg-card)]">
         <CardHeader>
           <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
-            Report queue
+            Queue
           </CardDescription>
           <CardTitle className="font-heading text-xl">
-            Generated case reports
+            Latest reports
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">

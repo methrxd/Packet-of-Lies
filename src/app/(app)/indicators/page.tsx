@@ -96,18 +96,17 @@ export default async function IndicatorsPage() {
     <div className="space-y-6">
       <PageHeader
         eyebrow="Indicators"
-        title="Observable intelligence registry"
-        description="Capture, validate, and correlate indicators across submissions and investigations with deduplicated observable tracking."
+        title="Indicator registry"
       />
 
       <div className="grid gap-4 xl:grid-cols-[1.2fr_1.8fr]">
         <Card className="border-white/6 bg-[var(--bg-card)]">
           <CardHeader>
             <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
-              New indicator
+              Create
             </CardDescription>
             <CardTitle className="font-heading text-xl">
-              Register observable
+              Add indicator
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -118,10 +117,10 @@ export default async function IndicatorsPage() {
         <Card className="border-white/6 bg-[var(--bg-card)]">
           <CardHeader>
             <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
-              Registry telemetry
+              Metrics
             </CardDescription>
             <CardTitle className="font-heading text-xl">
-              Current intelligence state
+              Registry summary
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-3">
@@ -156,7 +155,7 @@ export default async function IndicatorsPage() {
       <Card className="border-white/6 bg-[var(--bg-card)]">
         <CardHeader>
           <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
-            Observable queue
+            Queue
           </CardDescription>
           <CardTitle className="font-heading text-xl">
             Latest indicators

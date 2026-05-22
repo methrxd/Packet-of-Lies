@@ -68,38 +68,32 @@ export default async function AdminPage() {
     <div className="space-y-6">
       <PageHeader
         eyebrow="Admin"
-        title="Access and identity control plane"
-        description="Invite users, assign roles, and track onboarding completion from one secure admin workspace."
+        title="Access control"
       />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="border-white/6 bg-[var(--bg-card)]">
           <CardHeader>
             <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
-              Team state
+              Users
             </CardDescription>
             <CardTitle className="font-heading text-xl">
               {users.length} active user{users.length === 1 ? "" : "s"}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm leading-7 text-[var(--text-secondary)]">
-            <p>
-              User onboarding is invite-only by default.
-            </p>
-            <p>
-              New users complete username, password, and optional profile image
-              before entering protected routes.
-            </p>
+            <p>Invite-only onboarding is active.</p>
+            <p>Profile completion is required before workspace access.</p>
           </CardContent>
         </Card>
 
         <Card className="border-white/6 bg-[var(--bg-card)]">
           <CardHeader>
             <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
-              Role distribution
+              Roles
             </CardDescription>
             <CardTitle className="font-heading text-xl">
-              Access segmentation
+              Distribution
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -122,8 +116,7 @@ export default async function AdminPage() {
               completed
             </Badge>
             <p className="text-sm leading-7 text-[var(--text-secondary)]">
-              Keep at least one admin account active at all times. Admin-only
-              routes are gated at the middleware, layout, and RLS layers.
+              Keep at least one admin account active.
             </p>
           </CardContent>
         </Card>
@@ -132,10 +125,10 @@ export default async function AdminPage() {
       <Card className="border-white/6 bg-[var(--bg-card)]">
         <CardHeader>
           <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
-            User invites
+            Invite
           </CardDescription>
           <CardTitle className="font-heading text-xl">
-            Invite a new user
+            New user
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -146,10 +139,10 @@ export default async function AdminPage() {
       <Card className="border-white/6 bg-[var(--bg-card)]">
         <CardHeader>
           <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
-            Role operations
+            Roles
           </CardDescription>
           <CardTitle className="font-heading text-xl">
-            Live profile role management
+            Role management
           </CardTitle>
         </CardHeader>
         <CardContent>
