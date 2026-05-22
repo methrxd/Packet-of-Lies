@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { getAuthContext } from "@/lib/auth";
+import { getAuthContext, hasPermission } from "@/lib/auth";
 import { inferIndicatorFromSubmission } from "@/lib/indicators";
 import {
   submissionArtifactPath,
@@ -51,6 +51,13 @@ export async function createSubmissionAction(
     return {
       status: "error",
       message: parsed.error.issues[0]?.message ?? "Invalid submission payload.",
+    };
+  }
+
+  if (!hasPermission(auth, "manage_submissions")) {
+    return {
+      status: "error",
+      message: "Your role does not have permission to create submissions.",
     };
   }
 

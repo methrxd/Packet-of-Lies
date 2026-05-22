@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { getAuthContext } from "@/lib/auth";
+import { getAuthContext, hasPermission } from "@/lib/auth";
 import { normalizeIndicatorValue } from "@/lib/indicators";
 import { createClient } from "@/lib/supabase/server";
 import { indicatorStatusOptions, indicatorTypeOptions } from "@/lib/workflow";
@@ -32,6 +32,13 @@ export async function createIndicatorAction(
     return {
       status: "error",
       message: "You must be signed in to create an indicator.",
+    };
+  }
+
+  if (!hasPermission(auth, "view_indicators")) {
+    return {
+      status: "error",
+      message: "Your role does not have permission to create indicators.",
     };
   }
 

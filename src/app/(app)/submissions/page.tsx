@@ -1,5 +1,7 @@
-import { CreateSubmissionForm } from "@/components/submissions/create-submission-form";
+import { redirect } from "next/navigation";
+
 import { createClient } from "@/lib/supabase/server";
+import { getAuthContext, hasPermission } from "@/lib/auth";
 import type { SubmissionType } from "@/lib/workflow";
 import { Badge } from "@/components/ui/badge";
 
@@ -44,13 +46,15 @@ type SubmissionRow = {
 };
 
 export default async function SubmissionsPage() {
-  const supabase = await createClient();
-  const { data: caseOptions } = await supabase
-    .from("cases")
-    .select("id, case_number, title")
-    .order("created_at", { ascending: false })
-    .limit(100);
+  const auth = await getAuthContext();
+  if (!auth) {
+    redirect("/auth/login");
+  }
+  if (!hasPermission(auth, "view_submissions")) {
+    redirect("/auth/access-denied");
+  }
 
+  const supabase = await createClient();
   const { data: submissions } = await supabase
     .from("submissions")
     .select(
@@ -59,38 +63,17 @@ export default async function SubmissionsPage() {
     .order("created_at", { ascending: false })
     .limit(25);
 
-  const options =
-    caseOptions?.map((item) => ({
-      id: item.id,
-      caseNumber: item.case_number,
-      title: item.title,
-    })) ?? [];
-
   const list = (submissions ?? []) as SubmissionRow[];
 
   return (
     <div className="space-y-6">
       <PageHeader
         eyebrow="Submissions"
-        title="Evidence intake workflow"
-        description="Capture suspicious material, validate intake metadata, and optionally link evidence to an investigation case."
+        title="Senior evidence review"
+        description="Review cross-case evidence submissions and validation states. Case-level document uploads now happen directly from the case workspace."
       />
 
-      <div className="grid gap-4 xl:grid-cols-[1.2fr_1.8fr]">
-        <Card className="border-white/6 bg-[var(--bg-card)]">
-          <CardHeader>
-            <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
-              New intake
-            </CardDescription>
-            <CardTitle className="font-heading text-xl">
-              Capture suspicious evidence
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <CreateSubmissionForm caseOptions={options} />
-          </CardContent>
-        </Card>
-
+      <div className="grid gap-4">
         <Card className="border-white/6 bg-[var(--bg-card)]">
           <CardHeader>
             <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
@@ -183,13 +166,13 @@ export default async function SubmissionsPage() {
         <CardContent>
           <div className="grid gap-3 md:grid-cols-3">
             <div className="rounded-2xl border border-white/6 bg-white/2 p-4 text-sm leading-6 text-[var(--text-secondary)]">
-              Submissions are private and visible only to authenticated users.
+              Submissions are private and only visible to roles with `view_submissions`.
             </div>
             <div className="rounded-2xl border border-white/6 bg-white/2 p-4 text-sm leading-6 text-[var(--text-secondary)]">
-              Upload accepts only PDF, JPG, JPEG, and PNG files up to 5 MB.
+              Case investigation documents are now uploaded directly in Findings and Response Actions.
             </div>
             <div className="rounded-2xl border border-white/6 bg-white/2 p-4 text-sm leading-6 text-[var(--text-secondary)]">
-              Analysts can attach new evidence to cases during or after triage.
+              This screen is intended for senior review and governance across submissions.
             </div>
           </div>
         </CardContent>

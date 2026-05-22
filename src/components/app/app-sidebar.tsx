@@ -25,6 +25,7 @@ import {
 
 type AppSidebarProps = {
   role: AppRole;
+  permissions: string[];
   displayName: string;
   username: string | null;
   avatarUrl: string | null;
@@ -41,6 +42,7 @@ function initialsFromName(name: string) {
 
 export function AppSidebar({
   role,
+  permissions,
   displayName,
   username,
   avatarUrl,
@@ -48,6 +50,18 @@ export function AppSidebar({
   const pathname = usePathname();
   const isAdmin = role === "admin";
   const initials = initialsFromName(displayName);
+
+  const visiblePrimaryNavigation = primaryNavigation.filter((item) => {
+    if (!item.requiredPermission) {
+      return true;
+    }
+
+    if (isAdmin) {
+      return true;
+    }
+
+    return permissions.includes(item.requiredPermission);
+  });
 
   return (
     <Sidebar
@@ -105,7 +119,7 @@ export function AppSidebar({
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {primaryNavigation.map((item) => {
+              {visiblePrimaryNavigation.map((item) => {
                 const isActive =
                   pathname === item.href || pathname.startsWith(`${item.href}/`);
 

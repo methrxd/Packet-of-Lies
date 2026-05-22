@@ -1,4 +1,7 @@
 import { GenerateReportForm } from "@/components/reports/generate-report-form";
+import { redirect } from "next/navigation";
+
+import { getAuthContext, hasPermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -34,6 +37,14 @@ type ReportRow = {
 };
 
 export default async function ReportsPage() {
+  const auth = await getAuthContext();
+  if (!auth) {
+    redirect("/auth/login");
+  }
+  if (!hasPermission(auth, "view_reports")) {
+    redirect("/auth/access-denied");
+  }
+
   const supabase = await createClient();
   const [{ data: caseOptions }, { data: reports }] = await Promise.all([
     supabase

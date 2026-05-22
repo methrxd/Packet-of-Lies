@@ -1,20 +1,18 @@
-import { notFound, redirect } from "next/navigation";
+import { NextResponse } from "next/server";
 
-import { CaseDetailLive } from "@/components/cases/case-detail-live";
-import { getAuthContext, hasPermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { getAuthContext, hasPermission } from "@/lib/auth";
 
-export default async function CaseDetailPage({
-  params,
-}: {
-  params: Promise<{ caseId: string }>;
-}) {
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ caseId: string }> }
+) {
   const auth = await getAuthContext();
   if (!auth) {
-    redirect("/auth/login");
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   if (!hasPermission(auth, "manage_cases")) {
-    redirect("/auth/access-denied");
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const { caseId } = await params;
@@ -28,7 +26,6 @@ export default async function CaseDetailPage({
     { data: submissions },
     { data: indicators },
     { data: assignees },
-    { data: activityLog },
   ] = await Promise.all([
     supabase
       .from("cases")
@@ -72,33 +69,19 @@ export default async function CaseDetailPage({
       .from("profiles")
       .select("id, email, display_name, username")
       .order("created_at", { ascending: false }),
-    supabase
-      .from("case_activity_log")
-      .select("id, actor_user_id, action, payload, created_at")
-      .eq("case_id", caseId)
-      .order("created_at", { ascending: false })
-      .limit(100),
   ]);
 
   if (caseError || !caseRecord) {
-    notFound();
+    return NextResponse.json({ error: caseError?.message ?? "Case not found" }, { status: 404 });
   }
 
-  return (
-    <CaseDetailLive
-      initialSnapshot={{
-        caseRecord,
-        findings: findings ?? [],
-        mitigations: mitigations ?? [],
-        comments: comments ?? [],
-        submissions: submissions ?? [],
-        indicators: indicators ?? [],
-        assignees: assignees ?? [],
-      }}
-      initialActivity={{
-        activityLog: activityLog ?? [],
-        assignees: assignees ?? [],
-      }}
-    />
-  );
+  return NextResponse.json({
+    caseRecord,
+    findings: findings ?? [],
+    mitigations: mitigations ?? [],
+    comments: comments ?? [],
+    submissions: submissions ?? [],
+    indicators: indicators ?? [],
+    assignees: assignees ?? [],
+  });
 }

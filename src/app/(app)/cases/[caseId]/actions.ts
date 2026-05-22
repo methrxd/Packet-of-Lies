@@ -3,12 +3,17 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { getAuthContext } from "@/lib/auth";
+import { getAuthContext, hasPermission } from "@/lib/auth";
+import {
+  caseDocumentArtifactPath,
+  validateCaseDocumentFile,
+} from "@/lib/case-document-file";
 import {
   caseStatusOptions,
   mitigationStatusOptions,
   type CaseStatus,
 } from "@/lib/workflow";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 const statusTransitionMap: Record<CaseStatus, CaseStatus[]> = {
@@ -75,6 +80,10 @@ export async function updateCaseStatusAction(
   const auth = await getAuthContext();
   if (!auth) {
     return { status: "error", message: "You must be signed in to update case status." };
+  }
+
+  if (!hasPermission(auth, "manage_cases")) {
+    return { status: "error", message: "Your role cannot update case status." };
   }
 
   const parsed = statusSchema.safeParse({
@@ -161,6 +170,10 @@ export async function updateCaseAssigneeAction(
     return { status: "error", message: "You must be signed in to update assignment." };
   }
 
+  if (!hasPermission(auth, "manage_cases")) {
+    return { status: "error", message: "Your role cannot update assignments." };
+  }
+
   const assigneeInput = formData.get("assigneeId");
   const parsed = assignmentSchema.safeParse({
     caseId: formData.get("caseId"),
@@ -203,6 +216,13 @@ export async function createCaseFindingAction(
     return { status: "error", message: "You must be signed in to add findings." };
   }
 
+  if (!hasPermission(auth, "manage_case_documents")) {
+    return {
+      status: "error",
+      message: "Your role cannot add findings or case documents.",
+    };
+  }
+
   const parsed = findingSchema.safeParse({
     caseId: formData.get("caseId"),
     title: formData.get("title"),
@@ -212,12 +232,63 @@ export async function createCaseFindingAction(
     return { status: "error", message: "Invalid finding payload." };
   }
 
+  const attachmentInput = formData.get("document");
+  const documentFile =
+    attachmentInput instanceof File && attachmentInput.size > 0
+      ? attachmentInput
+      : null;
+
+  let attachmentData: {
+    path: string;
+    fileName: string;
+    fileSize: number;
+    contentType: string;
+  } | null = null;
+
+  if (documentFile) {
+    const validation = await validateCaseDocumentFile(documentFile);
+    if (!validation.ok) {
+      return { status: "error", message: validation.message };
+    }
+
+    try {
+      const admin = createAdminClient();
+      const bytes = Buffer.from(await documentFile.arrayBuffer());
+      const path = caseDocumentArtifactPath(auth.userId, parsed.data.caseId, "finding");
+      const upload = await admin.storage.from("case-documents").upload(path, bytes, {
+        contentType: validation.contentType,
+        upsert: false,
+      });
+
+      if (upload.error) {
+        return { status: "error", message: upload.error.message };
+      }
+
+      attachmentData = {
+        path,
+        fileName: documentFile.name,
+        fileSize: documentFile.size,
+        contentType: validation.contentType,
+      };
+    } catch (error) {
+      return {
+        status: "error",
+        message:
+          error instanceof Error ? error.message : "Failed to upload finding document.",
+      };
+    }
+  }
+
   const supabase = await createClient();
   const { error } = await supabase.from("case_findings").insert({
     case_id: parsed.data.caseId,
     title: parsed.data.title,
     detail: parsed.data.detail,
     created_by: auth.userId,
+    document_path: attachmentData?.path ?? null,
+    document_name: attachmentData?.fileName ?? null,
+    document_size: attachmentData?.fileSize ?? null,
+    document_mime: attachmentData?.contentType ?? null,
   });
 
   if (error) {
@@ -243,6 +314,13 @@ export async function createCaseMitigationAction(
     return { status: "error", message: "You must be signed in to add mitigations." };
   }
 
+  if (!hasPermission(auth, "manage_case_documents")) {
+    return {
+      status: "error",
+      message: "Your role cannot add mitigations or case documents.",
+    };
+  }
+
   const parsed = mitigationSchema.safeParse({
     caseId: formData.get("caseId"),
     title: formData.get("title"),
@@ -253,6 +331,53 @@ export async function createCaseMitigationAction(
     return { status: "error", message: "Invalid mitigation payload." };
   }
 
+  const attachmentInput = formData.get("document");
+  const documentFile =
+    attachmentInput instanceof File && attachmentInput.size > 0
+      ? attachmentInput
+      : null;
+
+  let attachmentData: {
+    path: string;
+    fileName: string;
+    fileSize: number;
+    contentType: string;
+  } | null = null;
+
+  if (documentFile) {
+    const validation = await validateCaseDocumentFile(documentFile);
+    if (!validation.ok) {
+      return { status: "error", message: validation.message };
+    }
+
+    try {
+      const admin = createAdminClient();
+      const bytes = Buffer.from(await documentFile.arrayBuffer());
+      const path = caseDocumentArtifactPath(auth.userId, parsed.data.caseId, "mitigation");
+      const upload = await admin.storage.from("case-documents").upload(path, bytes, {
+        contentType: validation.contentType,
+        upsert: false,
+      });
+
+      if (upload.error) {
+        return { status: "error", message: upload.error.message };
+      }
+
+      attachmentData = {
+        path,
+        fileName: documentFile.name,
+        fileSize: documentFile.size,
+        contentType: validation.contentType,
+      };
+    } catch (error) {
+      return {
+        status: "error",
+        message:
+          error instanceof Error ? error.message : "Failed to upload mitigation document.",
+      };
+    }
+  }
+
   const supabase = await createClient();
   const { error } = await supabase.from("case_mitigations").insert({
     case_id: parsed.data.caseId,
@@ -260,6 +385,10 @@ export async function createCaseMitigationAction(
     detail: parsed.data.detail,
     status: parsed.data.status,
     created_by: auth.userId,
+    document_path: attachmentData?.path ?? null,
+    document_name: attachmentData?.fileName ?? null,
+    document_size: attachmentData?.fileSize ?? null,
+    document_mime: attachmentData?.contentType ?? null,
   });
 
   if (error) {
@@ -284,6 +413,10 @@ export async function createCaseCommentAction(
   const auth = await getAuthContext();
   if (!auth) {
     return { status: "error", message: "You must be signed in to add comments." };
+  }
+
+  if (!hasPermission(auth, "manage_cases")) {
+    return { status: "error", message: "Your role cannot add case comments." };
   }
 
   const parsed = commentSchema.safeParse({

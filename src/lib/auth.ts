@@ -1,7 +1,6 @@
 import { cache } from "react";
 
 import { hasSupabaseEnv } from "@/lib/env";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export type AppRole = "admin" | "analyst";
@@ -12,6 +11,8 @@ export type AuthContext = {
   displayName: string;
   username: string | null;
   role: AppRole;
+  roleId: string | null;
+  permissions: string[];
   avatarPath: string | null;
   avatarUrl: string | null;
   isProfileComplete: boolean;
@@ -34,7 +35,7 @@ export const getAuthContext = cache(async (): Promise<AuthContext | null> => {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("email, display_name, role, username, avatar_path, profile_completed_at")
+    .select("email, display_name, role, role_id, username, avatar_path, profile_completed_at")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -48,17 +49,18 @@ export const getAuthContext = cache(async (): Promise<AuthContext | null> => {
     profile?.username && profile?.profile_completed_at
   );
 
-  let avatarUrl: string | null = null;
-  if (avatarPath) {
-    try {
-      const admin = createAdminClient();
-      const { data } = await admin.storage
-        .from("profile-avatars")
-        .createSignedUrl(avatarPath, 60 * 60);
-      avatarUrl = data?.signedUrl ?? null;
-    } catch {
-      avatarUrl = null;
-    }
+  // Avoid generating signed avatar URLs on every request to keep auth/bootstrap fast.
+  // Avatar preview can be expanded later through a dedicated lightweight endpoint.
+  const avatarUrl: string | null = null;
+
+  const roleId = profile?.role_id ?? null;
+  let permissions: string[] = [];
+  if (roleId) {
+    const { data: permissionRows } = await supabase
+      .from("app_role_permissions")
+      .select("permission_key")
+      .eq("role_id", roleId);
+    permissions = (permissionRows ?? []).map((row) => row.permission_key);
   }
 
   return {
@@ -67,8 +69,18 @@ export const getAuthContext = cache(async (): Promise<AuthContext | null> => {
     displayName,
     username,
     role: profileRole,
+    roleId,
+    permissions,
     avatarPath,
     avatarUrl,
     isProfileComplete,
   };
 });
+
+export function hasPermission(auth: AuthContext, permissionKey: string) {
+  if (auth.role === "admin") {
+    return true;
+  }
+
+  return auth.permissions.includes(permissionKey);
+}

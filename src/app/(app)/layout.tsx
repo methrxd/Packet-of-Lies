@@ -21,6 +21,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     <SidebarProvider defaultOpen>
       <AppSidebar
         role={auth.role}
+        permissions={auth.permissions}
         displayName={auth.displayName}
         username={auth.username}
         avatarUrl={auth.avatarUrl}

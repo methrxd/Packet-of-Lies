@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { getAuthContext } from "@/lib/auth";
+import { getAuthContext, hasPermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { casePriorityOptions, caseSeverityOptions } from "@/lib/workflow";
 
@@ -29,6 +29,13 @@ export async function createCaseAction(
     return {
       status: "error",
       message: "You must be signed in to create a case.",
+    };
+  }
+
+  if (!hasPermission(auth, "manage_cases")) {
+    return {
+      status: "error",
+      message: "Your role does not have permission to create cases.",
     };
   }
 

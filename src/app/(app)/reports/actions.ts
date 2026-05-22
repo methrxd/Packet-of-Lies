@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { getAuthContext } from "@/lib/auth";
+import { getAuthContext, hasPermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 const generateReportSchema = z.object({
@@ -25,6 +25,13 @@ export async function generateCaseReportAction(
     return {
       status: "error",
       message: "You must be signed in to generate a report.",
+    };
+  }
+
+  if (!hasPermission(auth, "view_reports")) {
+    return {
+      status: "error",
+      message: "Your role does not have permission to generate reports.",
     };
   }
 

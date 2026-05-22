@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { CreateCaseForm } from "@/components/cases/create-case-form";
+import { getAuthContext, hasPermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import type { CasePriority, CaseSeverity, CaseStatus } from "@/lib/workflow";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +35,14 @@ function formatStatus(status: CaseStatus) {
 }
 
 export default async function CasesPage() {
+  const auth = await getAuthContext();
+  if (!auth) {
+    redirect("/auth/login");
+  }
+  if (!hasPermission(auth, "manage_cases")) {
+    redirect("/auth/access-denied");
+  }
+
   const supabase = await createClient();
   const { data: cases } = await supabase
     .from("cases")

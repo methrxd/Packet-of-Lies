@@ -1,4 +1,7 @@
 import { CreateIndicatorForm } from "@/components/indicators/create-indicator-form";
+import { redirect } from "next/navigation";
+
+import { getAuthContext, hasPermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import type { IndicatorStatus, IndicatorType } from "@/lib/workflow";
 import { Badge } from "@/components/ui/badge";
@@ -52,6 +55,14 @@ type IndicatorRow = {
 };
 
 export default async function IndicatorsPage() {
+  const auth = await getAuthContext();
+  if (!auth) {
+    redirect("/auth/login");
+  }
+  if (!hasPermission(auth, "view_indicators")) {
+    redirect("/auth/access-denied");
+  }
+
   const supabase = await createClient();
   const [{ data: indicators }, { data: caseOptions }] = await Promise.all([
     supabase
