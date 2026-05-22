@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ caseId: string }> }
 ) {
   const supabase = await createClient();
@@ -17,6 +17,8 @@ export async function GET(
   }
 
   const { caseId } = await params;
+  const mode = new URL(request.url).searchParams.get("mode");
+  const includeAssignees = mode !== "live";
 
   const [
     { data: caseRecord, error: caseError },
@@ -24,7 +26,7 @@ export async function GET(
     { data: mitigations },
     { data: comments },
     { data: indicators },
-    { data: assignees },
+    assigneesResult,
   ] = await Promise.all([
     supabase
       .from("cases")
@@ -58,10 +60,12 @@ export async function GET(
       .eq("source_case_id", caseId)
       .order("last_seen_at", { ascending: false })
       .limit(20),
-    supabase
-      .from("profiles")
-      .select("id, email, display_name, username")
-      .order("created_at", { ascending: false }),
+    includeAssignees
+      ? supabase
+          .from("profiles")
+          .select("id, email, display_name, username")
+          .order("created_at", { ascending: false })
+      : Promise.resolve({ data: null, error: null }),
   ]);
 
   if (caseError || !caseRecord) {
@@ -74,6 +78,6 @@ export async function GET(
     mitigations: mitigations ?? [],
     comments: comments ?? [],
     indicators: indicators ?? [],
-    assignees: assignees ?? [],
+    assignees: assigneesResult.data ?? [],
   });
 }

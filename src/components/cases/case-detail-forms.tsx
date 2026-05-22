@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 
 import {
   createCaseCommentAction,
@@ -42,6 +42,25 @@ type UserOption = {
 type FormCallbackProps = {
   onSuccess?: () => void;
 };
+
+function useTriggerOnSuccess(
+  status: CaseDetailActionState["status"],
+  onSuccess?: () => void
+) {
+  const onSuccessRef = useRef(onSuccess);
+  const previousStatusRef = useRef<CaseDetailActionState["status"]>("idle");
+
+  useEffect(() => {
+    onSuccessRef.current = onSuccess;
+  }, [onSuccess]);
+
+  useEffect(() => {
+    if (status === "success" && previousStatusRef.current !== "success") {
+      onSuccessRef.current?.();
+    }
+    previousStatusRef.current = status;
+  }, [status]);
+}
 
 async function validatePdfRealtime(file: File | null) {
   if (!file) {
@@ -85,11 +104,7 @@ export function CaseStatusForm({
   onSuccess,
 }: CaseStatusFormProps) {
   const [state, action, pending] = useActionState(updateCaseStatusAction, initialState);
-  useEffect(() => {
-    if (state.status === "success") {
-      onSuccess?.();
-    }
-  }, [state.status, onSuccess]);
+  useTriggerOnSuccess(state.status, onSuccess);
 
   return (
     <form action={action} className="space-y-3">
@@ -139,11 +154,7 @@ export function CaseAssigneeForm({
   onSuccess,
 }: CaseAssigneeFormProps) {
   const [state, action, pending] = useActionState(updateCaseAssigneeAction, initialState);
-  useEffect(() => {
-    if (state.status === "success") {
-      onSuccess?.();
-    }
-  }, [state.status, onSuccess]);
+  useTriggerOnSuccess(state.status, onSuccess);
 
   return (
     <form action={action} className="space-y-3">
@@ -188,11 +199,7 @@ type CaseEntityFormProps = {
 export function CaseFindingForm({ caseId, onSuccess }: CaseEntityFormProps) {
   const [state, action, pending] = useActionState(createCaseFindingAction, initialState);
   const [docError, setDocError] = useState("");
-  useEffect(() => {
-    if (state.status === "success") {
-      onSuccess?.();
-    }
-  }, [state.status, onSuccess]);
+  useTriggerOnSuccess(state.status, onSuccess);
 
   return (
     <form action={action} className="space-y-3">
@@ -254,11 +261,7 @@ export function CaseFindingForm({ caseId, onSuccess }: CaseEntityFormProps) {
 export function CaseMitigationForm({ caseId, onSuccess }: CaseEntityFormProps) {
   const [state, action, pending] = useActionState(createCaseMitigationAction, initialState);
   const [docError, setDocError] = useState("");
-  useEffect(() => {
-    if (state.status === "success") {
-      onSuccess?.();
-    }
-  }, [state.status, onSuccess]);
+  useTriggerOnSuccess(state.status, onSuccess);
 
   return (
     <form action={action} className="space-y-3">
@@ -330,11 +333,7 @@ export function CaseMitigationForm({ caseId, onSuccess }: CaseEntityFormProps) {
 
 export function CaseCommentForm({ caseId, onSuccess }: CaseEntityFormProps) {
   const [state, action, pending] = useActionState(createCaseCommentAction, initialState);
-  useEffect(() => {
-    if (state.status === "success") {
-      onSuccess?.();
-    }
-  }, [state.status, onSuccess]);
+  useTriggerOnSuccess(state.status, onSuccess);
 
   return (
     <form action={action} className="space-y-3">

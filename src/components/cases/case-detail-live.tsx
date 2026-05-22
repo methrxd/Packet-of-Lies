@@ -20,6 +20,7 @@ const SNAPSHOT_REFRESH_MS = 5000;
 const ACTIVITY_FALLBACK_REFRESH_MS = 5000;
 const MAX_ACTIVITY_ROWS = 150;
 const MAX_BACKOFF_MS = 20000;
+const MIN_MANUAL_REFRESH_GAP_MS = 1200;
 
 type Assignee = {
   id: string;
@@ -105,6 +106,13 @@ type CaseDetailLiveProps = {
   initialActivity: ActivityPayload;
 };
 
+function toSafeDate(value: string) {
+  if (/[zZ]$|[+-]\d{2}:\d{2}$/.test(value)) {
+    return new Date(value);
+  }
+  return new Date(`${value}Z`);
+}
+
 function formatDateTime(value: string) {
   return new Intl.DateTimeFormat(undefined, {
     day: "2-digit",
@@ -114,7 +122,7 @@ function formatDateTime(value: string) {
     minute: "2-digit",
     second: "2-digit",
     hour12: false,
-  }).format(new Date(value));
+  }).format(toSafeDate(value));
 }
 
 function formatActionLabel(action: string) {
@@ -188,6 +196,8 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
   const activityRetryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const snapshotFailureCountRef = useRef(0);
   const activityFailureCountRef = useRef(0);
+  const lastSnapshotRefreshRef = useRef(0);
+  const lastActivityRefreshRef = useRef(0);
   const refreshSnapshotRef = useRef<() => Promise<void>>(async () => {});
   const refreshActivityRef = useRef<() => Promise<void>>(async () => {});
 
@@ -207,21 +217,26 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
     label: profile.display_name ?? profile.username ?? profile.email,
   }));
 
-  const refreshSnapshot = useCallback(async () => {
+  const refreshSnapshot = useCallback(async (force = false) => {
     if (typeof document !== "undefined" && document.hidden) {
+      return;
+    }
+    const now = Date.now();
+    if (!force && now - lastSnapshotRefreshRef.current < MIN_MANUAL_REFRESH_GAP_MS) {
       return;
     }
     if (snapshotInFlightRef.current) {
       return;
     }
 
+    lastSnapshotRefreshRef.current = now;
     snapshotInFlightRef.current = true;
     snapshotAbortRef.current?.abort();
     const controller = new AbortController();
     snapshotAbortRef.current = controller;
 
     try {
-      const response = await fetch(`/api/cases/${caseId}/snapshot`, {
+      const response = await fetch(`/api/cases/${caseId}/snapshot?mode=live`, {
         method: "GET",
         cache: "no-store",
         signal: controller.signal,
@@ -232,7 +247,10 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
       }
 
       const data = (await response.json()) as SnapshotPayload;
-      setSnapshot(data);
+      setSnapshot((current) => ({
+        ...data,
+        assignees: data.assignees.length > 0 ? data.assignees : current.assignees,
+      }));
       setSnapshotError("");
       snapshotFailureCountRef.current = 0;
     } catch (error) {
@@ -256,14 +274,19 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
     }
   }, [caseId]);
 
-  const refreshActivity = useCallback(async () => {
+  const refreshActivity = useCallback(async (force = false) => {
     if (typeof document !== "undefined" && document.hidden) {
+      return;
+    }
+    const now = Date.now();
+    if (!force && now - lastActivityRefreshRef.current < MIN_MANUAL_REFRESH_GAP_MS) {
       return;
     }
     if (activityInFlightRef.current) {
       return;
     }
 
+    lastActivityRefreshRef.current = now;
     activityInFlightRef.current = true;
     activityAbortRef.current?.abort();
     const controller = new AbortController();
@@ -341,8 +364,8 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
   useEffect(() => {
     const onVisibilityChange = () => {
       if (!document.hidden) {
-        void refreshSnapshot();
-        void refreshActivity();
+        void refreshSnapshot(true);
+        void refreshActivity(true);
       }
     };
 
@@ -399,6 +422,10 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
   const assignedToLabel = snapshot.caseRecord.assigned_to
     ? (userMap.get(snapshot.caseRecord.assigned_to) ?? "Unknown user")
     : "Unassigned";
+  const handleCaseMutationSuccess = useCallback(() => {
+    void refreshSnapshot(true);
+    void refreshActivity(true);
+  }, [refreshActivity, refreshSnapshot]);
 
   return (
     <div className="space-y-6">
@@ -423,10 +450,7 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
             <CaseStatusForm
               caseId={snapshot.caseRecord.id}
               currentStatus={snapshot.caseRecord.status}
-              onSuccess={() => {
-                void refreshSnapshot();
-                void refreshActivity();
-              }}
+              onSuccess={handleCaseMutationSuccess}
             />
           </CardContent>
         </Card>
@@ -443,10 +467,7 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
               caseId={snapshot.caseRecord.id}
               assigneeId={snapshot.caseRecord.assigned_to}
               options={assigneeOptions}
-              onSuccess={() => {
-                void refreshSnapshot();
-                void refreshActivity();
-              }}
+              onSuccess={handleCaseMutationSuccess}
             />
           </CardContent>
         </Card>
@@ -498,10 +519,7 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
           <CardContent className="space-y-4">
             <CaseFindingForm
               caseId={snapshot.caseRecord.id}
-              onSuccess={() => {
-                void refreshSnapshot();
-                void refreshActivity();
-              }}
+              onSuccess={handleCaseMutationSuccess}
             />
             <div className="space-y-3">
               {snapshot.findings.length === 0 ? (
@@ -515,12 +533,12 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
                   <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">{finding.detail}</p>
                   {finding.document_name ? (
                     <p className="mt-2 text-xs text-[var(--text-muted)]">
-                      Attached PDF: {finding.document_name} |{" "}
+                      Attached PDF: {finding.document_name} -{" "}
                       {Math.ceil((finding.document_size ?? 0) / 1024)} KB
                     </p>
                   ) : null}
                   <p className="mt-2 text-xs text-[var(--text-muted)]">
-                    {userMap.get(finding.created_by) ?? "Unknown user"} |{" "}
+                    {userMap.get(finding.created_by) ?? "Unknown user"} -{" "}
                     {formatDateTime(finding.created_at)}
                   </p>
                 </div>
@@ -539,10 +557,7 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
           <CardContent className="space-y-4">
             <CaseMitigationForm
               caseId={snapshot.caseRecord.id}
-              onSuccess={() => {
-                void refreshSnapshot();
-                void refreshActivity();
-              }}
+              onSuccess={handleCaseMutationSuccess}
             />
             <div className="space-y-3">
               {snapshot.mitigations.length === 0 ? (
@@ -564,12 +579,12 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
                   <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">{mitigation.detail}</p>
                   {mitigation.document_name ? (
                     <p className="mt-2 text-xs text-[var(--text-muted)]">
-                      Attached PDF: {mitigation.document_name} |{" "}
+                      Attached PDF: {mitigation.document_name} -{" "}
                       {Math.ceil((mitigation.document_size ?? 0) / 1024)} KB
                     </p>
                   ) : null}
                   <p className="mt-2 text-xs text-[var(--text-muted)]">
-                    {userMap.get(mitigation.created_by) ?? "Unknown user"} |{" "}
+                    {userMap.get(mitigation.created_by) ?? "Unknown user"} -{" "}
                     {formatDateTime(mitigation.created_at)}
                   </p>
                 </div>
@@ -590,10 +605,7 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
           <CardContent className="space-y-4">
             <CaseCommentForm
               caseId={snapshot.caseRecord.id}
-              onSuccess={() => {
-                void refreshSnapshot();
-                void refreshActivity();
-              }}
+              onSuccess={handleCaseMutationSuccess}
             />
             <div className="space-y-3">
               {snapshot.comments.length === 0 ? (
@@ -605,7 +617,7 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
                 <div key={comment.id} className="rounded-2xl border border-white/6 bg-white/2 p-4">
                   <p className="text-sm leading-6 text-[var(--text-secondary)]">{comment.body}</p>
                   <p className="mt-2 text-xs text-[var(--text-muted)]">
-                    {userMap.get(comment.created_by) ?? "Unknown user"} |{" "}
+                    {userMap.get(comment.created_by) ?? "Unknown user"} -{" "}
                     {formatDateTime(comment.created_at)}
                   </p>
                 </div>
