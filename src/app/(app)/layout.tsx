@@ -28,9 +28,9 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       />
       <SidebarInset className="min-h-svh bg-transparent">
         <AppHeader
-          email={auth.email}
           role={auth.role}
           displayName={auth.displayName}
+          username={auth.username}
           avatarUrl={auth.avatarUrl}
         />
         <div className="flex flex-1 flex-col px-4 py-5 md:px-6 md:py-6">

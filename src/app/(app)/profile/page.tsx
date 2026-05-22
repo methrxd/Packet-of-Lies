@@ -51,9 +51,10 @@ export default async function ProfilePage() {
         </CardHeader>
         <CardContent>
           <ProfileSettingsForm
-            email={auth.email}
             defaultUsername={auth.username ?? auth.displayName}
             defaultDisplayName={auth.displayName}
+            showSignedInBanner
+            signedInEmail={auth.email}
           />
         </CardContent>
       </Card>

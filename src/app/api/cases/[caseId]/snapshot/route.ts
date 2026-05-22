@@ -1,29 +1,28 @@
 import { NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
-import { getAuthContext, hasPermission } from "@/lib/auth";
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ caseId: string }> }
 ) {
-  const auth = await getAuthContext();
-  if (!auth) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (!hasPermission(auth, "manage_cases")) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const { caseId } = await params;
-  const supabase = await createClient();
 
   const [
     { data: caseRecord, error: caseError },
     { data: findings },
     { data: mitigations },
     { data: comments },
-    { data: submissions },
     { data: indicators },
     { data: assignees },
   ] = await Promise.all([
@@ -54,12 +53,6 @@ export async function GET(
       .eq("case_id", caseId)
       .order("created_at", { ascending: false }),
     supabase
-      .from("submissions")
-      .select("id, title, submission_type, validation_state, created_at")
-      .eq("case_id", caseId)
-      .order("created_at", { ascending: false })
-      .limit(20),
-    supabase
       .from("indicators")
       .select("id, indicator_type, indicator_value, status, confidence, last_seen_at")
       .eq("source_case_id", caseId)
@@ -80,7 +73,6 @@ export async function GET(
     findings: findings ?? [],
     mitigations: mitigations ?? [],
     comments: comments ?? [],
-    submissions: submissions ?? [],
     indicators: indicators ?? [],
     assignees: assignees ?? [],
   });

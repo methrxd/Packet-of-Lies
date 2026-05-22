@@ -14,15 +14,19 @@ const initialState: UpdateProfileActionState = {
 };
 
 type ProfileSettingsFormProps = {
-  email: string;
   defaultUsername: string;
   defaultDisplayName: string;
+  showSignedInBanner?: boolean;
+  signedInEmail?: string;
+  compact?: boolean;
 };
 
 export function ProfileSettingsForm({
-  email,
   defaultUsername,
   defaultDisplayName,
+  showSignedInBanner = false,
+  signedInEmail,
+  compact = false,
 }: ProfileSettingsFormProps) {
   const [state, action, isPending] = useActionState(
     updateProfileAction,
@@ -31,9 +35,11 @@ export function ProfileSettingsForm({
 
   return (
     <form action={action} className="space-y-4">
-      <div className="rounded-xl border border-white/8 bg-white/2 px-3 py-2 text-sm text-[var(--text-secondary)]">
-        Signed in as <span className="text-[var(--text-primary)]">{email}</span>
-      </div>
+      {showSignedInBanner && signedInEmail ? (
+        <div className="rounded-xl border border-white/8 bg-white/2 px-3 py-2 text-sm text-[var(--text-secondary)]">
+          Signed in as <span className="text-[var(--text-primary)]">{signedInEmail}</span>
+        </div>
+      ) : null}
 
       <div className="space-y-2">
         <label
@@ -106,7 +112,7 @@ export function ProfileSettingsForm({
       <button
         type="submit"
         disabled={isPending}
-        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-[var(--accent-border)] bg-[var(--accent-soft)] font-medium text-primary transition-colors hover:bg-[color:rgba(2,249,109,0.14)] disabled:cursor-not-allowed disabled:opacity-60"
+        className={`inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-[var(--accent-border)] bg-[var(--accent-soft)] font-medium text-primary transition-colors hover:bg-[color:rgba(2,249,109,0.14)] disabled:cursor-not-allowed disabled:opacity-60 ${compact ? "w-auto px-4" : "w-full"}`}
       >
         <ShieldCheck className="size-4" />
         {isPending ? "Saving profile..." : "Save profile"}

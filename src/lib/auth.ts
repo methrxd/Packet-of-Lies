@@ -1,6 +1,7 @@
 import { cache } from "react";
 
-import { hasSupabaseEnv } from "@/lib/env";
+import { hasServiceRoleEnv, hasSupabaseEnv } from "@/lib/env";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export type AppRole = "admin" | "analyst";
@@ -49,9 +50,18 @@ export const getAuthContext = cache(async (): Promise<AuthContext | null> => {
     profile?.username && profile?.profile_completed_at
   );
 
-  // Avoid generating signed avatar URLs on every request to keep auth/bootstrap fast.
-  // Avatar preview can be expanded later through a dedicated lightweight endpoint.
-  const avatarUrl: string | null = null;
+  let avatarUrl: string | null = null;
+  if (avatarPath && hasServiceRoleEnv()) {
+    try {
+      const admin = createAdminClient();
+      const signed = await admin.storage
+        .from("profile-avatars")
+        .createSignedUrl(avatarPath, 60 * 60);
+      avatarUrl = signed.data?.signedUrl ?? null;
+    } catch {
+      avatarUrl = null;
+    }
+  }
 
   const roleId = profile?.role_id ?? null;
   let permissions: string[] = [];

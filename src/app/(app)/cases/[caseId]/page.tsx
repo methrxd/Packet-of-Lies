@@ -25,7 +25,6 @@ export default async function CaseDetailPage({
     { data: findings },
     { data: mitigations },
     { data: comments },
-    { data: submissions },
     { data: indicators },
     { data: assignees },
     { data: activityLog },
@@ -57,12 +56,6 @@ export default async function CaseDetailPage({
       .eq("case_id", caseId)
       .order("created_at", { ascending: false }),
     supabase
-      .from("submissions")
-      .select("id, title, submission_type, validation_state, created_at")
-      .eq("case_id", caseId)
-      .order("created_at", { ascending: false })
-      .limit(20),
-    supabase
       .from("indicators")
       .select("id, indicator_type, indicator_value, status, confidence, last_seen_at")
       .eq("source_case_id", caseId)
@@ -91,13 +84,11 @@ export default async function CaseDetailPage({
         findings: findings ?? [],
         mitigations: mitigations ?? [],
         comments: comments ?? [],
-        submissions: submissions ?? [],
         indicators: indicators ?? [],
         assignees: assignees ?? [],
       }}
       initialActivity={{
         activityLog: activityLog ?? [],
-        assignees: assignees ?? [],
       }}
     />
   );

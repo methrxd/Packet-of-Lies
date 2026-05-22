@@ -1,31 +1,30 @@
-import { Bell, Search, ShieldCheck } from "lucide-react";
-import Image from "next/image";
+"use client";
+
+import { Bell, Search } from "lucide-react";
 
 import type { AppRole } from "@/lib/auth";
 import { SignOutButton } from "@/components/auth/sign-out-button";
-import { Badge } from "@/components/ui/badge";
+import { ProfileQuickPanel } from "@/components/app/profile-quick-panel";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
 type AppHeaderProps = {
-  email: string;
   displayName: string;
+  username: string | null;
   avatarUrl: string | null;
   role: AppRole;
 };
 
-function initialsFromName(name: string) {
-  return name
-    .split(" ")
-    .map((part) => part[0] ?? "")
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+function roleLabel(role: AppRole) {
+  return role === "admin" ? "Admin" : "Analyst";
 }
 
-export function AppHeader({ email, displayName, avatarUrl, role }: AppHeaderProps) {
-  const initials = initialsFromName(displayName);
-
+export function AppHeader({
+  displayName,
+  username,
+  avatarUrl,
+  role,
+}: AppHeaderProps) {
   return (
     <header className="sticky top-0 z-20 border-b border-white/6 bg-[color:rgba(8,8,8,0.86)]/95 backdrop-blur">
       <div className="flex h-16 items-center gap-3 px-4 md:px-6">
@@ -42,38 +41,20 @@ export function AppHeader({ email, displayName, avatarUrl, role }: AppHeaderProp
         </div>
 
         <div className="ml-auto flex items-center gap-2">
-          <Badge
-            variant="outline"
-            className="hidden border-[var(--accent-border)] bg-[var(--accent-soft)] font-mono-ui text-[11px] tracking-[0.18em] text-primary uppercase md:inline-flex"
-          >
-            <ShieldCheck className="size-3.5" />
-            {role} session
-          </Badge>
-          <Badge
-            variant="outline"
-            className="hidden border-white/8 bg-white/2 text-xs text-[var(--text-secondary)] lg:inline-flex"
-          >
-            {email}
-          </Badge>
-          <div className="flex size-10 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-[var(--bg-card)]">
-            {avatarUrl ? (
-              <Image
-                src={avatarUrl}
-                alt={`${displayName} avatar`}
-                width={40}
-                height={40}
-                className="size-full object-cover"
-              />
-            ) : (
-              <span className="font-mono-ui text-[11px] tracking-[0.08em] text-[var(--text-secondary)]">
-                {initials}
-              </span>
-            )}
+          <div className="hidden rounded-xl border border-white/8 bg-white/2 px-3 py-1.5 md:block">
+            <p className="text-sm font-medium text-[var(--text-primary)]">{displayName}</p>
+            <p className="text-[11px] text-[var(--text-muted)]">{roleLabel(role)}</p>
           </div>
           <button className="flex size-10 items-center justify-center rounded-xl border border-white/8 bg-[var(--bg-card)] text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]">
             <Bell className="size-4" />
             <span className="sr-only">Notifications</span>
           </button>
+          <ProfileQuickPanel
+            displayName={displayName}
+            username={username}
+            role={role}
+            avatarUrl={avatarUrl}
+          />
           <SignOutButton />
         </div>
       </div>

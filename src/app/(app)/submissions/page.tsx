@@ -86,8 +86,7 @@ export default async function SubmissionsPage() {
           <CardContent className="space-y-3">
             {list.length === 0 ? (
               <div className="rounded-2xl border border-white/6 bg-white/2 p-4 text-sm text-[var(--text-secondary)]">
-                No submissions yet. Use the intake form to add the first evidence
-                item.
+                No submissions are queued right now.
               </div>
             ) : null}
 
