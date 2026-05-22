@@ -23,7 +23,6 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         role={auth.role}
         permissions={auth.permissions}
         displayName={auth.displayName}
-        username={auth.username}
         avatarUrl={auth.avatarUrl}
       />
       <SidebarInset className="min-h-svh bg-transparent">

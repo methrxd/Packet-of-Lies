@@ -27,7 +27,6 @@ type AppSidebarProps = {
   role: AppRole;
   permissions: string[];
   displayName: string;
-  username: string | null;
   avatarUrl: string | null;
 };
 
@@ -44,7 +43,6 @@ export function AppSidebar({
   role,
   permissions,
   displayName,
-  username,
   avatarUrl,
 }: AppSidebarProps) {
   const pathname = usePathname();
@@ -81,7 +79,7 @@ export function AppSidebar({
               Packet of Lies
             </p>
             <p className="font-mono-ui mt-1 text-[11px] tracking-[0.18em] text-sidebar-foreground/55 uppercase">
-              {isAdmin ? "Admin workspace" : "Analyst workspace"}
+              Incident workspace
             </p>
           </div>
         </Link>
@@ -105,7 +103,7 @@ export function AppSidebar({
           </div>
           <Sparkles className="size-4" />
           <span className="group-data-[collapsible=icon]:hidden">
-            {username ?? displayName}
+            {displayName}
           </span>
         </Button>
       </SidebarHeader>

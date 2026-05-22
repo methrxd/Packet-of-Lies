@@ -1,7 +1,6 @@
 import { cache } from "react";
 
 import { hasServiceRoleEnv, hasSupabaseEnv } from "@/lib/env";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export type AppRole = "admin" | "analyst";
@@ -50,18 +49,10 @@ export const getAuthContext = cache(async (): Promise<AuthContext | null> => {
     profile?.username && profile?.profile_completed_at
   );
 
-  let avatarUrl: string | null = null;
-  if (avatarPath && hasServiceRoleEnv()) {
-    try {
-      const admin = createAdminClient();
-      const signed = await admin.storage
-        .from("profile-avatars")
-        .createSignedUrl(avatarPath, 60 * 60);
-      avatarUrl = signed.data?.signedUrl ?? null;
-    } catch {
-      avatarUrl = null;
-    }
-  }
+  const avatarUrl =
+    avatarPath && hasServiceRoleEnv()
+      ? `/api/profile/avatar?path=${encodeURIComponent(avatarPath)}`
+      : null;
 
   const roleId = profile?.role_id ?? null;
   let permissions: string[] = [];
