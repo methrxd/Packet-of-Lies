@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { LockKeyhole } from "lucide-react";
 
-import { AsciiAmbient } from "@/components/app/ascii-ambient";
 import { BootstrapForm } from "@/components/auth/bootstrap-form";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,7 +34,6 @@ export default async function BootstrapPage() {
             <p className="helix-copy">
               One-time setup to create the initial admin identity and unlock workspace access.
             </p>
-            <AsciiAmbient title="Bootstrap stream" />
           </div>
         </section>
 
@@ -58,4 +56,3 @@ export default async function BootstrapPage() {
     </main>
   );
 }
-

@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
-import { AsciiAmbient } from "@/components/app/ascii-ambient";
 import { PageHeader } from "@/components/app/page-header";
 import {
   CaseAssigneeForm,
@@ -632,7 +631,6 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
             {activityError ? (
               <p className="text-xs text-[var(--state-warning)]">{activityError}</p>
             ) : null}
-            <AsciiAmbient title="Realtime pipeline" className="p-3" />
             <div className="helix-terminal h-[560px] overflow-y-auto p-3">
               {activity.activityLog.length === 0 ? (
                 <p className="rounded-xl border border-white/6 bg-white/2 p-4 text-sm text-[var(--text-secondary)]">

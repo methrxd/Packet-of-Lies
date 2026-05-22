@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ArrowUpRight, Radar, ShieldCheck, Sparkles, Workflow } from "lucide-react";
 
-import { AsciiAmbient } from "@/components/app/ascii-ambient";
 import { PageHeader } from "@/components/app/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -132,7 +131,6 @@ export default async function DashboardPage() {
         </Card>
 
         <div className="space-y-4">
-          <AsciiAmbient title="Case signal feed" />
           <Card>
             <CardHeader>
               <CardTitle>Latest events</CardTitle>
@@ -158,4 +156,3 @@ export default async function DashboardPage() {
     </div>
   );
 }
-

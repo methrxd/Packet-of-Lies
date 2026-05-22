@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { UserRoundCheck } from "lucide-react";
 
-import { AsciiAmbient } from "@/components/app/ascii-ambient";
 import { CompleteProfileForm } from "@/components/auth/complete-profile-form";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,7 +45,6 @@ export default async function CompleteProfilePage() {
             <p className="helix-copy">
               Set your username and credentials before entering the investigation workspace.
             </p>
-            <AsciiAmbient title="Identity stream" />
           </div>
         </section>
 
@@ -69,4 +67,3 @@ export default async function CompleteProfilePage() {
     </main>
   );
 }
-

@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
 import Image from "next/image";
 
-import { AsciiAmbient } from "@/components/app/ascii-ambient";
 import { LoginForm } from "@/components/auth/login-form";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -73,7 +72,6 @@ export default async function LoginPage() {
               <p className="helix-copy max-w-2xl">
                 Built for academic incident-response simulation: detection, case tracking, analysis, response, and reporting.
               </p>
-              <AsciiAmbient title="Signal monitor" />
             </div>
           </section>
 

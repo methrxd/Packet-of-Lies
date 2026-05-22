@@ -1,5 +1,3 @@
-import { AsciiAmbient } from "@/components/app/ascii-ambient";
-
 export default function CaseDetailLoading() {
   return (
     <div className="flex min-h-[62svh] items-center justify-center">
@@ -8,10 +6,9 @@ export default function CaseDetailLoading() {
         <div className="relative z-10 space-y-4">
           <p className="helix-kicker">Loading case detail</p>
           <h2 className="helix-headline text-2xl md:text-3xl">Syncing case timeline and evidence</h2>
-          <AsciiAmbient title="Case stream" />
+          <p className="helix-copy">Fetching latest findings, actions, and activity…</p>
         </div>
       </div>
     </div>
   );
 }
-
