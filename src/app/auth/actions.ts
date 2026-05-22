@@ -1,5 +1,6 @@
 "use server";
 
+import { createHash, randomInt } from "crypto";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -7,6 +8,7 @@ import { avatarPathForUser, validateAvatarFile } from "@/lib/avatar";
 import { getAuthContext } from "@/lib/auth";
 import { isBootstrapRequired } from "@/lib/bootstrap-state";
 import { hasServiceRoleEnv } from "@/lib/env";
+import { sendPasswordResetOtpEmail } from "@/lib/password-reset-email";
 import { validateStrongPassword, validateUsername } from "@/lib/security";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -24,6 +26,20 @@ const completeProfileSchema = z.object({
   confirmPassword: z.string().min(12),
 });
 
+const requestResetOtpSchema = z.object({
+  identifier: z.string().trim().min(3).max(160),
+});
+
+const resetWithOtpSchema = z.object({
+  identifier: z.string().trim().min(3).max(160),
+  otpCode: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/, "Use the 6-digit code from your email."),
+  password: z.string().min(12),
+  confirmPassword: z.string().min(12),
+});
+
 type ActionStatus = "idle" | "success" | "error";
 
 export type BootstrapActionState = {
@@ -35,6 +51,53 @@ export type CompleteProfileActionState = {
   status: ActionStatus;
   message: string;
 };
+
+export type PasswordResetActionState = {
+  status: ActionStatus;
+  message: string;
+};
+
+const OTP_TTL_MINUTES = 10;
+const OTP_MAX_ATTEMPTS = 5;
+
+function resolveOtpSecret() {
+  return (
+    process.env.PASSWORD_RESET_OTP_SECRET ??
+    process.env.SUPABASE_SERVICE_ROLE_KEY ??
+    "packet-of-lies-fallback-secret"
+  );
+}
+
+function hashOtpCode(code: string) {
+  return createHash("sha256").update(`${code}:${resolveOtpSecret()}`).digest("hex");
+}
+
+function createOtpCode() {
+  return String(randomInt(0, 1_000_000)).padStart(6, "0");
+}
+
+async function resolveIdentifierProfile(identifier: string) {
+  const admin = createAdminClient();
+  const normalized = identifier.trim();
+  const looksLikeEmail = normalized.includes("@");
+
+  if (looksLikeEmail) {
+    const { data } = await admin
+      .from("profiles")
+      .select("id, email")
+      .ilike("email", normalized.toLowerCase())
+      .maybeSingle();
+    return data ?? null;
+  }
+
+  const { data } = await admin
+    .from("profiles")
+    .select("id, email")
+    .ilike("username", normalized)
+    .maybeSingle();
+
+  return data ?? null;
+}
 
 async function hasAnyAdmin() {
   const bootstrapRequired = await isBootstrapRequired();
@@ -318,4 +381,214 @@ export async function completeProfileAction(
   revalidatePath("/auth/complete-profile");
 
   return { status: "success", message: "Profile completed. Redirecting..." };
+}
+
+export async function requestPasswordResetOtpAction(
+  _prevState: PasswordResetActionState,
+  formData: FormData
+): Promise<PasswordResetActionState> {
+  const parsed = requestResetOtpSchema.safeParse({
+    identifier: formData.get("identifier"),
+  });
+
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: "Enter your email or username to receive the reset code.",
+    };
+  }
+
+  if (!hasServiceRoleEnv()) {
+    return {
+      status: "error",
+      message: "Password reset is not configured yet. Contact your administrator.",
+    };
+  }
+
+  try {
+    const profile = await resolveIdentifierProfile(parsed.data.identifier);
+    if (!profile?.id || !profile.email) {
+      return {
+        status: "success",
+        message:
+          "If this account exists, a 6-digit reset code has been sent to the registered email.",
+      };
+    }
+
+    const admin = createAdminClient();
+    const threshold = new Date(Date.now() - 60 * 1000).toISOString();
+    const { count: recentCount } = await admin
+      .from("password_reset_otps")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", profile.id)
+      .gte("created_at", threshold);
+
+    if ((recentCount ?? 0) >= 2) {
+      return {
+        status: "success",
+        message:
+          "If this account exists, a 6-digit reset code has been sent to the registered email.",
+      };
+    }
+
+    const code = createOtpCode();
+    const hashedOtp = hashOtpCode(code);
+    const expiresAt = new Date(Date.now() + OTP_TTL_MINUTES * 60 * 1000).toISOString();
+
+    await admin
+      .from("password_reset_otps")
+      .update({ consumed_at: new Date().toISOString() })
+      .eq("user_id", profile.id)
+      .is("consumed_at", null);
+
+    const { error: otpInsertError } = await admin.from("password_reset_otps").insert({
+      user_id: profile.id,
+      email: profile.email.toLowerCase(),
+      otp_hash: hashedOtp,
+      expires_at: expiresAt,
+    });
+
+    if (otpInsertError) {
+      return {
+        status: "error",
+        message: "Could not start password reset right now. Please try again.",
+      };
+    }
+
+    await sendPasswordResetOtpEmail({
+      to: profile.email.toLowerCase(),
+      otpCode: code,
+      expiresInMinutes: OTP_TTL_MINUTES,
+    });
+
+    return {
+      status: "success",
+      message:
+        "If this account exists, a 6-digit reset code has been sent to the registered email.",
+    };
+  } catch (error) {
+    return {
+      status: "error",
+      message:
+        error instanceof Error
+          ? error.message
+          : "Password reset request failed. Please try again.",
+    };
+  }
+}
+
+export async function resetPasswordWithOtpAction(
+  _prevState: PasswordResetActionState,
+  formData: FormData
+): Promise<PasswordResetActionState> {
+  const parsed = resetWithOtpSchema.safeParse({
+    identifier: formData.get("identifier"),
+    otpCode: formData.get("otpCode"),
+    password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
+  });
+
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: parsed.error.issues[0]?.message ?? "Invalid password reset payload.",
+    };
+  }
+
+  if (parsed.data.password !== parsed.data.confirmPassword) {
+    return { status: "error", message: "Passwords do not match." };
+  }
+
+  if (!validateStrongPassword(parsed.data.password)) {
+    return {
+      status: "error",
+      message:
+        "Password must be at least 12 characters and include uppercase, lowercase, number, and symbol.",
+    };
+  }
+
+  if (!hasServiceRoleEnv()) {
+    return {
+      status: "error",
+      message: "Password reset is not configured yet. Contact your administrator.",
+    };
+  }
+
+  try {
+    const profile = await resolveIdentifierProfile(parsed.data.identifier);
+    if (!profile?.id) {
+      return { status: "error", message: "Invalid reset code or account." };
+    }
+
+    const admin = createAdminClient();
+    const nowIso = new Date().toISOString();
+    const { data: latestOtp } = await admin
+      .from("password_reset_otps")
+      .select("id, otp_hash, attempts, expires_at, consumed_at")
+      .eq("user_id", profile.id)
+      .is("consumed_at", null)
+      .gte("expires_at", nowIso)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!latestOtp) {
+      return {
+        status: "error",
+        message: "The reset code is invalid or has expired. Request a new OTP.",
+      };
+    }
+
+    if ((latestOtp.attempts ?? 0) >= OTP_MAX_ATTEMPTS) {
+      return {
+        status: "error",
+        message: "Too many attempts for this code. Request a new OTP.",
+      };
+    }
+
+    const expectedHash = hashOtpCode(parsed.data.otpCode);
+    if (latestOtp.otp_hash !== expectedHash) {
+      await admin
+        .from("password_reset_otps")
+        .update({
+          attempts: (latestOtp.attempts ?? 0) + 1,
+          last_attempt_at: nowIso,
+        })
+        .eq("id", latestOtp.id);
+
+      return { status: "error", message: "Invalid OTP code." };
+    }
+
+    const passwordUpdate = await admin.auth.admin.updateUserById(profile.id, {
+      password: parsed.data.password,
+    });
+
+    if (passwordUpdate.error) {
+      return { status: "error", message: passwordUpdate.error.message };
+    }
+
+    await admin
+      .from("password_reset_otps")
+      .update({
+        consumed_at: nowIso,
+        last_attempt_at: nowIso,
+      })
+      .eq("user_id", profile.id)
+      .is("consumed_at", null);
+
+    revalidatePath("/auth/login");
+
+    return {
+      status: "success",
+      message: "Password has been reset. You can now sign in with the new password.",
+    };
+  } catch (error) {
+    return {
+      status: "error",
+      message:
+        error instanceof Error
+          ? error.message
+          : "Could not reset password right now. Please try again.",
+    };
+  }
 }
