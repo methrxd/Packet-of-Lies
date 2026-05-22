@@ -40,9 +40,16 @@ export const indicatorStatusOptions = [
   "false_positive",
 ] as const;
 
+export const mitigationStatusOptions = [
+  "planned",
+  "in_progress",
+  "completed",
+] as const;
+
 export type CaseStatus = (typeof caseStatusOptions)[number];
 export type CaseSeverity = (typeof caseSeverityOptions)[number];
 export type CasePriority = (typeof casePriorityOptions)[number];
 export type SubmissionType = (typeof submissionTypeOptions)[number];
 export type IndicatorType = (typeof indicatorTypeOptions)[number];
 export type IndicatorStatus = (typeof indicatorStatusOptions)[number];
+export type MitigationStatus = (typeof mitigationStatusOptions)[number];

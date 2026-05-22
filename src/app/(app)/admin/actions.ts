@@ -352,6 +352,26 @@ export async function deleteUserAction(
       .eq("submitted_by", parsed.data.userId);
 
     await admin
+      .from("case_findings")
+      .update({ created_by: access.auth.userId })
+      .eq("created_by", parsed.data.userId);
+
+    await admin
+      .from("case_mitigations")
+      .update({ created_by: access.auth.userId })
+      .eq("created_by", parsed.data.userId);
+
+    await admin
+      .from("case_comments")
+      .update({ created_by: access.auth.userId })
+      .eq("created_by", parsed.data.userId);
+
+    await admin
+      .from("case_activity_log")
+      .update({ actor_user_id: access.auth.userId })
+      .eq("actor_user_id", parsed.data.userId);
+
+    await admin
       .from("cases")
       .update({ assigned_to: null })
       .eq("assigned_to", parsed.data.userId);

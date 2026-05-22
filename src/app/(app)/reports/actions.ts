@@ -79,8 +79,36 @@ export async function generateCaseReportAction(
     };
   }
 
+  const { data: caseFindings, error: findingsError } = await supabase
+    .from("case_findings")
+    .select("title, detail, created_at")
+    .eq("case_id", parsed.data.caseId)
+    .order("created_at", { ascending: false });
+
+  if (findingsError) {
+    return {
+      status: "error",
+      message: findingsError.message,
+    };
+  }
+
+  const { data: caseMitigations, error: mitigationsError } = await supabase
+    .from("case_mitigations")
+    .select("title, detail, status, created_at")
+    .eq("case_id", parsed.data.caseId)
+    .order("created_at", { ascending: false });
+
+  if (mitigationsError) {
+    return {
+      status: "error",
+      message: mitigationsError.message,
+    };
+  }
+
   const submissionCount = submissions?.length ?? 0;
   const indicatorCount = indicators?.length ?? 0;
+  const findingCount = caseFindings?.length ?? 0;
+  const mitigationCount = caseMitigations?.length ?? 0;
   const validatedIndicators =
     indicators?.filter((indicator) => indicator.status === "validated").length ?? 0;
 
@@ -92,6 +120,12 @@ export async function generateCaseReportAction(
     indicatorCount > 0
       ? `${indicatorCount} indicator(s) have been captured, including ${validatedIndicators} validated indicator(s).`
       : "No indicators have been captured yet.",
+    findingCount > 0
+      ? `${findingCount} finding(s) were documented by analysts.`
+      : "No findings are documented yet.",
+    mitigationCount > 0
+      ? `${mitigationCount} mitigation step(s) were recorded for response actions.`
+      : "No mitigation steps are recorded yet.",
   ].join(" ");
 
   const findings = [
@@ -107,6 +141,18 @@ export async function generateCaseReportAction(
       title: `${indicator.indicator_type}: ${indicator.indicator_value}`,
       detail: `${indicator.status} · confidence ${indicator.confidence}% · last seen ${new Date(
         indicator.last_seen_at
+      ).toLocaleString()}`,
+    })) ?? []),
+    ...((caseFindings ?? []).slice(0, 4).map((finding) => ({
+      type: "finding",
+      title: finding.title,
+      detail: `${finding.detail} · logged ${new Date(finding.created_at).toLocaleString()}`,
+    })) ?? []),
+    ...((caseMitigations ?? []).slice(0, 4).map((mitigation) => ({
+      type: "mitigation",
+      title: mitigation.title,
+      detail: `${mitigation.status} · ${mitigation.detail} · logged ${new Date(
+        mitigation.created_at
       ).toLocaleString()}`,
     })) ?? []),
   ];

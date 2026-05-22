@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { CreateCaseForm } from "@/components/cases/create-case-form";
 import { createClient } from "@/lib/supabase/server";
 import type { CasePriority, CaseSeverity, CaseStatus } from "@/lib/workflow";
@@ -155,6 +157,12 @@ export default async function CasesPage() {
                 >
                   {item.priority}
                 </Badge>
+                <Link
+                  href={`/cases/${item.id}`}
+                  className="inline-flex h-8 items-center justify-center rounded-lg border border-white/10 bg-white/2 px-3 text-xs text-[var(--text-primary)] transition-colors hover:bg-white/4"
+                >
+                  Open case
+                </Link>
               </div>
             </div>
           ))}
