@@ -6,10 +6,17 @@ import {
   createCaseCommentAction,
   createCaseFindingAction,
   createCaseMitigationAction,
+  refreshCaseAnalysisRunAction,
+  runCaseAnalysisLiveAction,
   updateCaseAssigneeAction,
   updateCaseStatusAction,
+  useCachedAnalysisRunAction,
   type CaseDetailActionState,
 } from "@/app/(app)/cases/[caseId]/actions";
+import {
+  analysisInputTypeOptions,
+  type AnalysisProvider,
+} from "@/lib/malware-analysis/types";
 import {
   caseStatusOptions,
   mitigationStatusOptions,
@@ -357,5 +364,126 @@ export function CaseCommentForm({ caseId, onSuccess }: CaseEntityFormProps) {
         {pending ? "Adding..." : "Add comment"}
       </button>
     </form>
+  );
+}
+
+type AnalysisProviderOption = {
+  key: AnalysisProvider;
+  label: string;
+  configured: boolean;
+};
+
+type CaseAnalysisHubFormProps = {
+  caseId: string;
+  providers: AnalysisProviderOption[];
+  latestRunningRunId: string | null;
+} & FormCallbackProps;
+
+export function CaseAnalysisHubForm({
+  caseId,
+  providers,
+  latestRunningRunId,
+  onSuccess,
+}: CaseAnalysisHubFormProps) {
+  const [liveState, liveAction, livePending] = useActionState(
+    runCaseAnalysisLiveAction,
+    initialState
+  );
+  const [cacheState, cacheAction, cachePending] = useActionState(
+    useCachedAnalysisRunAction,
+    initialState
+  );
+  const [refreshState, refreshAction, refreshPending] = useActionState(
+    refreshCaseAnalysisRunAction,
+    initialState
+  );
+
+  useTriggerOnSuccess(liveState.status, onSuccess);
+  useTriggerOnSuccess(cacheState.status, onSuccess);
+  useTriggerOnSuccess(refreshState.status, onSuccess);
+
+  const defaultProvider = providers.find((provider) => provider.configured)?.key ?? "virustotal";
+
+  return (
+    <div className="space-y-3">
+      <form action={liveAction} className="space-y-3">
+        <input type="hidden" name="caseId" value={caseId} />
+        <div className="grid gap-3 md:grid-cols-2">
+          <select
+            name="provider"
+            defaultValue={defaultProvider}
+            className="h-11 w-full rounded-xl border border-white/10 bg-[var(--bg-card)] px-3 text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--accent-border)]"
+          >
+            {providers.map((provider) => (
+              <option key={provider.key} value={provider.key}>
+                {provider.label} {provider.configured ? "" : "(not configured)"}
+              </option>
+            ))}
+          </select>
+          <select
+            name="inputType"
+            defaultValue="hash"
+            className="h-11 w-full rounded-xl border border-white/10 bg-[var(--bg-card)] px-3 text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--accent-border)]"
+          >
+            {analysisInputTypeOptions.map((inputType) => (
+              <option key={inputType} value={inputType}>
+                {inputType}
+              </option>
+            ))}
+          </select>
+        </div>
+        <input
+          name="inputValue"
+          type="text"
+          required
+          minLength={6}
+          placeholder="Enter hash, URL, or sample reference"
+          className="h-11 w-full rounded-xl border border-white/10 bg-white/2 px-3 text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--accent-border)]"
+        />
+
+        {liveState.status !== "idle" ? (
+          <p className={messageClass(liveState.status)}>{liveState.message}</p>
+        ) : null}
+
+        <div className="grid gap-3 md:grid-cols-2">
+          <button
+            type="submit"
+            disabled={livePending}
+            className="inline-flex h-10 items-center justify-center rounded-xl border border-[var(--accent-border)] bg-[var(--accent-soft)] px-4 text-sm font-medium text-primary transition-colors hover:bg-[color:rgba(2,249,109,0.14)] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {livePending ? "Submitting..." : "Run live analysis"}
+          </button>
+
+          <button
+            formAction={cacheAction}
+            disabled={cachePending}
+            className="inline-flex h-10 items-center justify-center rounded-xl border border-white/12 bg-white/4 px-4 text-sm font-medium text-[var(--text-primary)] transition-colors hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {cachePending ? "Applying..." : "Use cached completed run"}
+          </button>
+        </div>
+      </form>
+
+      {cacheState.status !== "idle" ? (
+        <p className={messageClass(cacheState.status)}>{cacheState.message}</p>
+      ) : null}
+
+      {latestRunningRunId ? (
+        <form action={refreshAction} className="space-y-2">
+          <input type="hidden" name="caseId" value={caseId} />
+          <input type="hidden" name="runId" value={latestRunningRunId} />
+          {refreshState.status !== "idle" ? (
+            <p className={messageClass(refreshState.status)}>{refreshState.message}</p>
+          ) : null}
+          <button
+            type="submit"
+            disabled={refreshPending}
+            className="inline-flex h-9 items-center justify-center rounded-xl border border-white/12 bg-white/4 px-4 text-xs font-medium text-[var(--text-primary)] transition-colors hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {refreshPending ? "Refreshing..." : "Refresh latest running job"}
+          </button>
+        </form>
+      ) : null}
+    </div>
   );
 }

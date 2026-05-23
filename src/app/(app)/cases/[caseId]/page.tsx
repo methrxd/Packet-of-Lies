@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 
 import { CaseDetailLive } from "@/components/cases/case-detail-live";
 import { getAuthContext, hasPermission } from "@/lib/auth";
+import { listConfiguredProviders } from "@/lib/malware-analysis/providers";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function CaseDetailPage({
@@ -28,6 +29,7 @@ export default async function CaseDetailPage({
     { data: indicators },
     { data: assignees },
     { data: activityLog },
+    { data: analysisRuns },
   ] = await Promise.all([
     supabase
       .from("cases")
@@ -71,7 +73,34 @@ export default async function CaseDetailPage({
       .eq("case_id", caseId)
       .order("created_at", { ascending: false })
       .limit(100),
+    supabase
+      .from("case_analysis_runs")
+      .select(
+        "id, provider, input_type, input_value, status, verdict, provider_report_url, error_message, score_total, score_breakdown, is_cached, created_at, completed_at"
+      )
+      .eq("case_id", caseId)
+      .order("created_at", { ascending: false })
+      .limit(30),
   ]);
+
+  const providerOptions = [
+    {
+      key: "virustotal" as const,
+      label: "VirusTotal",
+      configured: false,
+    },
+    {
+      key: "hybrid_analysis" as const,
+      label: "Hybrid Analysis",
+      configured: false,
+    },
+  ];
+  for (const configuredProvider of listConfiguredProviders()) {
+    const match = providerOptions.find((provider) => provider.key === configuredProvider.key);
+    if (match) {
+      match.configured = true;
+    }
+  }
 
   if (caseError || !caseRecord) {
     notFound();
@@ -85,6 +114,8 @@ export default async function CaseDetailPage({
         mitigations: mitigations ?? [],
         comments: comments ?? [],
         indicators: indicators ?? [],
+        analysisRuns: analysisRuns ?? [],
+        analysisProviders: providerOptions,
         assignees: assignees ?? [],
       }}
       initialActivity={{

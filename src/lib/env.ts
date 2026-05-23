@@ -14,6 +14,14 @@ const inviteEmailEnvSchema = z.object({
   INVITE_SMTP_PASS: z.string().trim().min(1),
 });
 
+const malwareAnalysisEnvSchema = z.object({
+  VIRUSTOTAL_API_KEY: z.string().trim().min(1),
+});
+
+const hybridAnalysisEnvSchema = z.object({
+  HYBRID_ANALYSIS_API_KEY: z.string().trim().min(1),
+});
+
 export function getPublicEnv() {
   return publicEnvSchema.parse({
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -80,4 +88,36 @@ export function getSiteUrl() {
 
   const normalized = url.startsWith("http") ? url : `https://${url}`;
   return normalized.endsWith("/") ? normalized.slice(0, -1) : normalized;
+}
+
+export function hasVirusTotalApiKey() {
+  return malwareAnalysisEnvSchema.safeParse({
+    VIRUSTOTAL_API_KEY: process.env.VIRUSTOTAL_API_KEY,
+  }).success;
+}
+
+export function getVirusTotalApiKey() {
+  const parsed = malwareAnalysisEnvSchema.safeParse({
+    VIRUSTOTAL_API_KEY: process.env.VIRUSTOTAL_API_KEY,
+  });
+  if (!parsed.success) {
+    throw new Error("Missing server configuration: VIRUSTOTAL_API_KEY");
+  }
+  return parsed.data.VIRUSTOTAL_API_KEY;
+}
+
+export function hasHybridAnalysisApiKey() {
+  return hybridAnalysisEnvSchema.safeParse({
+    HYBRID_ANALYSIS_API_KEY: process.env.HYBRID_ANALYSIS_API_KEY,
+  }).success;
+}
+
+export function getHybridAnalysisApiKey() {
+  const parsed = hybridAnalysisEnvSchema.safeParse({
+    HYBRID_ANALYSIS_API_KEY: process.env.HYBRID_ANALYSIS_API_KEY,
+  });
+  if (!parsed.success) {
+    throw new Error("Missing server configuration: HYBRID_ANALYSIS_API_KEY");
+  }
+  return parsed.data.HYBRID_ANALYSIS_API_KEY;
 }

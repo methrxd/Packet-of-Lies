@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { listConfiguredProviders } from "@/lib/malware-analysis/providers";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(
@@ -26,6 +27,7 @@ export async function GET(
     { data: mitigations },
     { data: comments },
     { data: indicators },
+    { data: analysisRuns },
     assigneesResult,
   ] = await Promise.all([
     supabase
@@ -60,6 +62,14 @@ export async function GET(
       .eq("source_case_id", caseId)
       .order("last_seen_at", { ascending: false })
       .limit(20),
+    supabase
+      .from("case_analysis_runs")
+      .select(
+        "id, provider, input_type, input_value, status, verdict, provider_report_url, error_message, score_total, score_breakdown, is_cached, created_at, completed_at"
+      )
+      .eq("case_id", caseId)
+      .order("created_at", { ascending: false })
+      .limit(30),
     includeAssignees
       ? supabase
           .from("profiles")
@@ -72,12 +82,33 @@ export async function GET(
     return NextResponse.json({ error: caseError?.message ?? "Case not found" }, { status: 404 });
   }
 
+  const providerOptions = [
+    {
+      key: "virustotal" as const,
+      label: "VirusTotal",
+      configured: false,
+    },
+    {
+      key: "hybrid_analysis" as const,
+      label: "Hybrid Analysis",
+      configured: false,
+    },
+  ];
+  for (const configuredProvider of listConfiguredProviders()) {
+    const match = providerOptions.find((provider) => provider.key === configuredProvider.key);
+    if (match) {
+      match.configured = true;
+    }
+  }
+
   return NextResponse.json({
     caseRecord,
     findings: findings ?? [],
     mitigations: mitigations ?? [],
     comments: comments ?? [],
     indicators: indicators ?? [],
+    analysisRuns: analysisRuns ?? [],
+    analysisProviders: providerOptions,
     assignees: assigneesResult.data ?? [],
   });
 }

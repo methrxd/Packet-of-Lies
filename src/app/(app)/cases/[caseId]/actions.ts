@@ -9,6 +9,19 @@ import {
   validateCaseDocumentFile,
 } from "@/lib/case-document-file";
 import {
+  computeAnalysisScore,
+} from "@/lib/malware-analysis/scoring";
+import {
+  normalizeAnalysisInput,
+  analysisInputTypeOptions,
+  analysisProviderOptions,
+  type AnalysisProvider,
+  type AnalysisRunStatus,
+} from "@/lib/malware-analysis/types";
+import {
+  resolveAnalysisProvider,
+} from "@/lib/malware-analysis/providers";
+import {
   caseStatusOptions,
   mitigationStatusOptions,
   type CaseStatus,
@@ -53,6 +66,18 @@ const commentSchema = z.object({
   body: z.string().trim().min(3).max(3000),
 });
 
+const analysisSubmitSchema = z.object({
+  caseId: z.string().uuid(),
+  provider: z.enum(analysisProviderOptions),
+  inputType: z.enum(analysisInputTypeOptions),
+  inputValue: z.string().trim().min(6).max(500),
+});
+
+const analysisRefreshSchema = z.object({
+  caseId: z.string().uuid(),
+  runId: z.string().uuid(),
+});
+
 export type CaseDetailActionState = {
   status: "idle" | "success" | "error";
   message: string;
@@ -62,7 +87,7 @@ async function writeCaseActivity(
   caseId: string,
   actorUserId: string,
   action: string,
-  payload: Record<string, string | null>
+  payload: Record<string, string | number | boolean | null>
 ) {
   const supabase = await createClient();
   await supabase.from("case_activity_log").insert({
@@ -71,6 +96,81 @@ async function writeCaseActivity(
     action,
     payload,
   });
+}
+
+async function getActiveAnalysisRubric(supabase: Awaited<ReturnType<typeof createClient>>) {
+  const { data } = await supabase
+    .from("analysis_scoring_rubrics")
+    .select("id, version, weights")
+    .eq("is_active", true)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return data;
+}
+
+async function applyAnalysisProviderResult(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  runId: string,
+  provider: AnalysisProvider,
+  providerResult: {
+    status: AnalysisRunStatus;
+    externalJobId: string | null;
+    providerReportId: string | null;
+    providerReportUrl: string | null;
+    verdict: string | null;
+    reportMetadata: Record<string, unknown>;
+    behaviorSummary: Record<string, unknown>;
+    extractedIocs: Array<Record<string, unknown>>;
+    signalSnapshot: {
+      detections: number;
+      engines: number;
+      detectionRatio: number;
+      behaviorSeverity: number;
+      confidence: number;
+      suspiciousFamilies: number;
+      networkIndicators: number;
+    };
+    errorMessage: string | null;
+  }
+) {
+  const nowIso = new Date().toISOString();
+  const baseUpdate: Record<string, unknown> = {
+    status: providerResult.status,
+    external_job_id: providerResult.externalJobId,
+    provider_report_id: providerResult.providerReportId,
+    provider_report_url: providerResult.providerReportUrl,
+    verdict: providerResult.verdict,
+    report_metadata: providerResult.reportMetadata,
+    behavior_summary: providerResult.behaviorSummary,
+    extracted_iocs: providerResult.extractedIocs,
+    error_message: providerResult.errorMessage,
+  };
+
+  if (providerResult.status === "completed") {
+    const rubric = await getActiveAnalysisRubric(supabase);
+    const scoring = computeAnalysisScore(
+      providerResult.signalSnapshot,
+      (rubric?.weights as Record<string, unknown> | null | undefined) ?? null,
+      rubric?.version ?? "default"
+    );
+
+    baseUpdate.score_total = scoring.totalScore;
+    baseUpdate.score_breakdown = {
+      ...scoring.breakdown,
+      signals: providerResult.signalSnapshot,
+      provider,
+    };
+    baseUpdate.rubric_id = rubric?.id ?? null;
+    baseUpdate.rubric_snapshot = scoring.rubricSnapshot;
+    baseUpdate.completed_at = nowIso;
+  }
+
+  if (providerResult.status === "failed") {
+    baseUpdate.completed_at = nowIso;
+  }
+
+  await supabase.from("case_analysis_runs").update(baseUpdate).eq("id", runId);
 }
 
 export async function updateCaseStatusAction(
@@ -445,4 +545,294 @@ export async function createCaseCommentAction(
   revalidatePath(`/cases/${parsed.data.caseId}`);
 
   return { status: "success", message: "Comment added to the case thread." };
+}
+
+export async function runCaseAnalysisLiveAction(
+  _prevState: CaseDetailActionState,
+  formData: FormData
+): Promise<CaseDetailActionState> {
+  const auth = await getAuthContext();
+  if (!auth) {
+    return { status: "error", message: "You must be signed in to run analysis." };
+  }
+  if (!hasPermission(auth, "manage_cases")) {
+    return { status: "error", message: "Your role cannot run malware analysis jobs." };
+  }
+
+  const parsed = analysisSubmitSchema.safeParse({
+    caseId: formData.get("caseId"),
+    provider: formData.get("provider"),
+    inputType: formData.get("inputType"),
+    inputValue: formData.get("inputValue"),
+  });
+  if (!parsed.success) {
+    return { status: "error", message: "Invalid analysis request payload." };
+  }
+
+  const provider = resolveAnalysisProvider(parsed.data.provider);
+  if (!provider.isConfigured()) {
+    return {
+      status: "error",
+      message: `${provider.label} is not configured on this deployment.`,
+    };
+  }
+
+  const supabase = await createClient();
+  const normalizedInput = normalizeAnalysisInput(
+    parsed.data.inputType,
+    parsed.data.inputValue
+  );
+
+  const runInsert = await supabase
+    .from("case_analysis_runs")
+    .insert({
+      case_id: parsed.data.caseId,
+      requested_by: auth.userId,
+      provider: parsed.data.provider,
+      input_type: parsed.data.inputType,
+      input_value: parsed.data.inputValue.trim(),
+      input_normalized: normalizedInput,
+      status: "queued",
+      started_at: new Date().toISOString(),
+    })
+    .select("id")
+    .single();
+
+  if (runInsert.error || !runInsert.data) {
+    return {
+      status: "error",
+      message: runInsert.error?.message ?? "Could not create analysis job.",
+    };
+  }
+
+  await writeCaseActivity(parsed.data.caseId, auth.userId, "analysis_run_started", {
+    provider: parsed.data.provider,
+    input_type: parsed.data.inputType,
+  });
+
+  const providerResult = await provider.submit({
+    inputType: parsed.data.inputType,
+    inputValue: parsed.data.inputValue.trim(),
+    normalizedInput,
+  });
+
+  await applyAnalysisProviderResult(
+    supabase,
+    runInsert.data.id,
+    parsed.data.provider,
+    providerResult
+  );
+
+  if (providerResult.status === "completed") {
+    await writeCaseActivity(parsed.data.caseId, auth.userId, "analysis_run_completed", {
+      provider: parsed.data.provider,
+      status: "completed",
+    });
+  }
+
+  if (providerResult.status === "failed") {
+    await writeCaseActivity(parsed.data.caseId, auth.userId, "analysis_run_failed", {
+      provider: parsed.data.provider,
+      status: "failed",
+    });
+  }
+
+  revalidatePath(`/cases/${parsed.data.caseId}`);
+  revalidatePath("/cases");
+
+  if (providerResult.status === "running" || providerResult.status === "queued") {
+    return {
+      status: "success",
+      message: "Analysis job submitted. Status is running.",
+    };
+  }
+
+  if (providerResult.status === "failed") {
+    return {
+      status: "error",
+      message: providerResult.errorMessage ?? "Analysis provider returned an error.",
+    };
+  }
+
+  return {
+    status: "success",
+    message: "Analysis run completed and scored.",
+  };
+}
+
+export async function useCachedAnalysisRunAction(
+  _prevState: CaseDetailActionState,
+  formData: FormData
+): Promise<CaseDetailActionState> {
+  const auth = await getAuthContext();
+  if (!auth) {
+    return { status: "error", message: "You must be signed in to use cached analysis." };
+  }
+  if (!hasPermission(auth, "manage_cases")) {
+    return { status: "error", message: "Your role cannot run malware analysis jobs." };
+  }
+
+  const parsed = analysisSubmitSchema.safeParse({
+    caseId: formData.get("caseId"),
+    provider: formData.get("provider"),
+    inputType: formData.get("inputType"),
+    inputValue: formData.get("inputValue"),
+  });
+  if (!parsed.success) {
+    return { status: "error", message: "Invalid cached analysis payload." };
+  }
+
+  const supabase = await createClient();
+  const normalizedInput = normalizeAnalysisInput(
+    parsed.data.inputType,
+    parsed.data.inputValue
+  );
+
+  const { data: cachedRun, error: cachedError } = await supabase
+    .from("case_analysis_runs")
+    .select(
+      "id, provider_report_id, provider_report_url, verdict, report_metadata, behavior_summary, extracted_iocs, score_total, score_breakdown, rubric_id, rubric_snapshot"
+    )
+    .eq("provider", parsed.data.provider)
+    .eq("input_type", parsed.data.inputType)
+    .eq("input_normalized", normalizedInput)
+    .eq("status", "completed")
+    .order("completed_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (cachedError) {
+    return { status: "error", message: cachedError.message };
+  }
+  if (!cachedRun) {
+    return {
+      status: "error",
+      message: "No cached completed run found for this provider and input.",
+    };
+  }
+
+  const insert = await supabase.from("case_analysis_runs").insert({
+    case_id: parsed.data.caseId,
+    requested_by: auth.userId,
+    provider: parsed.data.provider,
+    input_type: parsed.data.inputType,
+    input_value: parsed.data.inputValue.trim(),
+    input_normalized: normalizedInput,
+    status: "completed",
+    provider_report_id: cachedRun.provider_report_id,
+    provider_report_url: cachedRun.provider_report_url,
+    verdict: cachedRun.verdict,
+    report_metadata: {
+      ...(cachedRun.report_metadata as Record<string, unknown>),
+      cached_source_run_id: cachedRun.id,
+    },
+    behavior_summary: cachedRun.behavior_summary,
+    extracted_iocs: cachedRun.extracted_iocs,
+    score_total: cachedRun.score_total,
+    score_breakdown: cachedRun.score_breakdown,
+    rubric_id: cachedRun.rubric_id,
+    rubric_snapshot: cachedRun.rubric_snapshot,
+    is_cached: true,
+    started_at: new Date().toISOString(),
+    completed_at: new Date().toISOString(),
+  });
+
+  if (insert.error) {
+    return { status: "error", message: insert.error.message };
+  }
+
+  await writeCaseActivity(parsed.data.caseId, auth.userId, "analysis_run_cached", {
+    provider: parsed.data.provider,
+    source_run: cachedRun.id,
+  });
+
+  revalidatePath(`/cases/${parsed.data.caseId}`);
+  return {
+    status: "success",
+    message: "Cached completed run applied successfully.",
+  };
+}
+
+export async function refreshCaseAnalysisRunAction(
+  _prevState: CaseDetailActionState,
+  formData: FormData
+): Promise<CaseDetailActionState> {
+  const auth = await getAuthContext();
+  if (!auth) {
+    return { status: "error", message: "You must be signed in to refresh analysis." };
+  }
+  if (!hasPermission(auth, "manage_cases")) {
+    return { status: "error", message: "Your role cannot refresh analysis jobs." };
+  }
+
+  const parsed = analysisRefreshSchema.safeParse({
+    caseId: formData.get("caseId"),
+    runId: formData.get("runId"),
+  });
+  if (!parsed.success) {
+    return { status: "error", message: "Invalid refresh request." };
+  }
+
+  const supabase = await createClient();
+  const { data: run, error: runError } = await supabase
+    .from("case_analysis_runs")
+    .select("id, provider, input_type, input_value, input_normalized, external_job_id, status")
+    .eq("id", parsed.data.runId)
+    .eq("case_id", parsed.data.caseId)
+    .maybeSingle();
+
+  if (runError || !run) {
+    return { status: "error", message: runError?.message ?? "Analysis run not found." };
+  }
+
+  if (run.status === "completed" || run.status === "failed") {
+    return { status: "success", message: `Run is already ${run.status}.` };
+  }
+
+  const provider = resolveAnalysisProvider(run.provider as AnalysisProvider);
+  if (!provider.isConfigured()) {
+    return {
+      status: "error",
+      message: `${provider.label} is not configured on this deployment.`,
+    };
+  }
+
+  const providerResult = await provider.poll({
+    inputType: run.input_type,
+    inputValue: run.input_value,
+    normalizedInput: run.input_normalized,
+    externalJobId: run.external_job_id,
+  });
+
+  await applyAnalysisProviderResult(
+    supabase,
+    run.id,
+    run.provider as AnalysisProvider,
+    providerResult
+  );
+
+  if (providerResult.status === "completed") {
+    await writeCaseActivity(parsed.data.caseId, auth.userId, "analysis_run_completed", {
+      provider: run.provider,
+      status: "completed",
+    });
+  }
+
+  if (providerResult.status === "failed") {
+    await writeCaseActivity(parsed.data.caseId, auth.userId, "analysis_run_failed", {
+      provider: run.provider,
+      status: "failed",
+    });
+  }
+
+  revalidatePath(`/cases/${parsed.data.caseId}`);
+  return {
+    status: "success",
+    message:
+      providerResult.status === "running"
+        ? "Analysis job is still running."
+        : providerResult.status === "completed"
+          ? "Analysis job completed."
+          : providerResult.errorMessage ?? "Analysis refresh failed.",
+  };
 }

@@ -5,6 +5,7 @@ import type { RealtimeChannel } from "@supabase/supabase-js";
 
 import { PageHeader } from "@/components/app/page-header";
 import {
+  CaseAnalysisHubForm,
   CaseAssigneeForm,
   CaseCommentForm,
   CaseFindingForm,
@@ -12,6 +13,10 @@ import {
   CaseStatusForm,
 } from "@/components/cases/case-detail-forms";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import type {
+  AnalysisProvider,
+  AnalysisRunStatus,
+} from "@/lib/malware-analysis/types";
 import { createClient } from "@/lib/supabase/client";
 import type { CaseStatus, MitigationStatus } from "@/lib/workflow";
 
@@ -87,12 +92,36 @@ type CaseIndicator = {
   last_seen_at: string;
 };
 
+type CaseAnalysisRun = {
+  id: string;
+  provider: AnalysisProvider;
+  input_type: "hash" | "url" | "sample_ref";
+  input_value: string;
+  status: AnalysisRunStatus;
+  verdict: string | null;
+  provider_report_url: string | null;
+  error_message: string | null;
+  score_total: number | null;
+  score_breakdown: Record<string, unknown> | null;
+  is_cached: boolean;
+  created_at: string;
+  completed_at: string | null;
+};
+
+type AnalysisProviderOption = {
+  key: AnalysisProvider;
+  label: string;
+  configured: boolean;
+};
+
 type SnapshotPayload = {
   caseRecord: CaseRecord;
   findings: Finding[];
   mitigations: Mitigation[];
   comments: CaseComment[];
   indicators: CaseIndicator[];
+  analysisRuns: CaseAnalysisRun[];
+  analysisProviders: AnalysisProviderOption[];
   assignees: Assignee[];
 };
 
@@ -132,6 +161,10 @@ function formatActionLabel(action: string) {
     finding_added: "Finding added",
     mitigation_added: "Mitigation added",
     comment_added: "Comment added",
+    analysis_run_started: "Analysis run started",
+    analysis_run_completed: "Analysis run completed",
+    analysis_run_failed: "Analysis run failed",
+    analysis_run_cached: "Cached analysis applied",
   };
 
   return mapping[action] ?? action.replaceAll("_", " ");
@@ -154,6 +187,18 @@ function payloadSummary(entry: CaseActivity) {
   }
   if (entry.action === "comment_added") {
     return `${entry.payload.preview ?? "A new analyst note was added."}`;
+  }
+  if (entry.action === "analysis_run_started") {
+    return `Submitted ${entry.payload.provider ?? "provider"} run for ${entry.payload.input_type ?? "input"}.`;
+  }
+  if (entry.action === "analysis_run_completed") {
+    return `${entry.payload.provider ?? "provider"} run completed.`;
+  }
+  if (entry.action === "analysis_run_failed") {
+    return `${entry.payload.provider ?? "provider"} run failed.`;
+  }
+  if (entry.action === "analysis_run_cached") {
+    return `Applied cached run from ${entry.payload.provider ?? "provider"}.`;
   }
 
   return "Case timeline event.";
@@ -215,6 +260,10 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
     id: profile.id,
     label: profile.display_name ?? profile.username ?? profile.email,
   }));
+
+  const latestRunningRunId =
+    snapshot.analysisRuns.find((run) => run.status === "running" || run.status === "queued")
+      ?.id ?? null;
 
   const refreshSnapshot = useCallback(async (force = false) => {
     if (typeof document !== "undefined" && document.hidden) {
@@ -505,6 +554,74 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
+              Analysis hub
+            </CardDescription>
+            <CardTitle className="font-heading text-xl">Provider-backed malware analysis</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <CaseAnalysisHubForm
+              caseId={snapshot.caseRecord.id}
+              providers={snapshot.analysisProviders}
+              latestRunningRunId={latestRunningRunId}
+              onSuccess={handleCaseMutationSuccess}
+            />
+            <div className="space-y-3">
+              {snapshot.analysisRuns.length === 0 ? (
+                <p className="helix-card text-sm text-[var(--text-secondary)]">
+                  No analysis runs recorded yet.
+                </p>
+              ) : null}
+              {snapshot.analysisRuns.map((run) => (
+                <div key={run.id} className="helix-card space-y-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex rounded-full border border-white/10 bg-white/4 px-2 py-1 text-xs">
+                      {run.provider}
+                    </span>
+                    <span className="inline-flex rounded-full border border-white/10 bg-white/4 px-2 py-1 text-xs">
+                      {run.input_type}
+                    </span>
+                    <span className="inline-flex rounded-full border border-white/10 bg-white/4 px-2 py-1 text-xs">
+                      {run.status}
+                    </span>
+                    {run.is_cached ? (
+                      <span className="inline-flex rounded-full border border-white/10 bg-white/4 px-2 py-1 text-xs">
+                        cached
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="font-mono-ui break-all text-xs text-[var(--text-secondary)]">{run.input_value}</p>
+                  <p className="text-sm text-[var(--text-primary)]">
+                    Verdict: {run.verdict ?? "pending"}
+                  </p>
+                  <p className="text-sm text-[var(--text-primary)]">
+                    Risk score: {run.score_total ?? "pending"}
+                  </p>
+                  {run.error_message ? (
+                    <p className="text-xs text-[var(--state-critical)]">{run.error_message}</p>
+                  ) : null}
+                  {run.provider_report_url ? (
+                    <a
+                      href={run.provider_report_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs text-primary underline underline-offset-4"
+                    >
+                      Open provider report
+                    </a>
+                  ) : null}
+                  <p className="text-xs text-[var(--text-muted)]">
+                    Created {formatDateTime(run.created_at)}
+                    {run.completed_at ? ` | Completed ${formatDateTime(run.completed_at)}` : ""}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardDescription className="font-mono-ui text-[10px] tracking-[0.18em] uppercase">
