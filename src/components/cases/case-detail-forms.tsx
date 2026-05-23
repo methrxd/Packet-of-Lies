@@ -14,7 +14,7 @@ import {
   type CaseDetailActionState,
 } from "@/app/(app)/cases/[caseId]/actions";
 import {
-  analysisInputTypeOptions,
+  detectAnalysisInputType,
   type AnalysisProvider,
 } from "@/lib/malware-analysis/types";
 import {
@@ -403,11 +403,20 @@ export function CaseAnalysisHubForm({
   useTriggerOnSuccess(refreshState.status, onSuccess);
 
   const defaultProvider = providers.find((provider) => provider.configured)?.key ?? "virustotal";
+  const [inputValue, setInputValue] = useState("");
+  const detectedInputType = detectAnalysisInputType(inputValue);
+  const detectedInputTypeLabel =
+    detectedInputType === "url"
+      ? "URL"
+      : detectedInputType === "hash"
+        ? "Hash"
+        : "Sample reference";
 
   return (
     <div className="space-y-3">
       <form action={liveAction} className="space-y-3">
         <input type="hidden" name="caseId" value={caseId} />
+        <input type="hidden" name="inputType" value={detectedInputType} />
         <div className="grid gap-3 md:grid-cols-2">
           <select
             name="provider"
@@ -420,17 +429,10 @@ export function CaseAnalysisHubForm({
               </option>
             ))}
           </select>
-          <select
-            name="inputType"
-            defaultValue="hash"
-            className="h-11 w-full rounded-xl border border-white/10 bg-[var(--bg-card)] px-3 text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--accent-border)]"
-          >
-            {analysisInputTypeOptions.map((inputType) => (
-              <option key={inputType} value={inputType}>
-                {inputType}
-              </option>
-            ))}
-          </select>
+          <div className="flex h-11 items-center justify-between rounded-xl border border-white/10 bg-[var(--bg-card)] px-3 text-sm">
+            <span className="text-[var(--text-muted)]">Detected input</span>
+            <span className="font-medium text-[var(--text-primary)]">{detectedInputTypeLabel}</span>
+          </div>
         </div>
         <input
           name="inputValue"
@@ -438,6 +440,8 @@ export function CaseAnalysisHubForm({
           required
           minLength={6}
           placeholder="Enter hash, URL, or sample reference"
+          value={inputValue}
+          onChange={(event) => setInputValue(event.target.value)}
           className="h-11 w-full rounded-xl border border-white/10 bg-white/2 px-3 text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--accent-border)]"
         />
 

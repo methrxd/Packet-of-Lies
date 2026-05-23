@@ -568,7 +568,7 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
               latestRunningRunId={latestRunningRunId}
               onSuccess={handleCaseMutationSuccess}
             />
-            <div className="space-y-3">
+            <div className="max-h-[420px] space-y-3 overflow-y-auto pr-1">
               {snapshot.analysisRuns.length === 0 ? (
                 <p className="helix-card text-sm text-[var(--text-secondary)]">
                   No analysis runs recorded yet.
@@ -592,13 +592,16 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
                       </span>
                     ) : null}
                   </div>
-                  <p className="font-mono-ui break-all text-xs text-[var(--text-secondary)]">{run.input_value}</p>
-                  <p className="text-sm text-[var(--text-primary)]">
-                    Verdict: {run.verdict ?? "pending"}
+                  <p
+                    title={run.input_value}
+                    className="font-mono-ui truncate text-xs text-[var(--text-secondary)]"
+                  >
+                    {run.input_value}
                   </p>
-                  <p className="text-sm text-[var(--text-primary)]">
-                    Risk score: {run.score_total ?? "pending"}
-                  </p>
+                  <div className="flex flex-wrap items-center gap-4 text-sm text-[var(--text-primary)]">
+                    <p>Verdict: {run.verdict ?? "pending"}</p>
+                    <p>Risk: {run.score_total ?? "pending"}</p>
+                  </div>
                   {run.error_message ? (
                     <p className="text-xs text-[var(--state-critical)]">{run.error_message}</p>
                   ) : null}
@@ -612,7 +615,7 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
                       Open provider report
                     </a>
                   ) : null}
-                  <p className="text-xs text-[var(--text-muted)]">
+                  <p className="truncate text-xs text-[var(--text-muted)]">
                     Created {formatDateTime(run.created_at)}
                     {run.completed_at ? ` | Completed ${formatDateTime(run.completed_at)}` : ""}
                   </p>
@@ -634,7 +637,7 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
               caseId={snapshot.caseRecord.id}
               onSuccess={handleCaseMutationSuccess}
             />
-            <div className="space-y-3">
+            <div className="max-h-[480px] space-y-3 overflow-y-auto pr-1">
               {snapshot.findings.length === 0 ? (
                 <p className="helix-card text-sm text-[var(--text-secondary)]">
                   No findings recorded yet.
@@ -643,7 +646,9 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
               {snapshot.findings.map((finding) => (
                 <div key={finding.id} className="helix-card">
                   <p className="text-sm font-medium text-[var(--text-primary)]">{finding.title}</p>
-                  <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">{finding.detail}</p>
+                  <p className="mt-2 max-h-24 overflow-y-auto text-sm leading-6 text-[var(--text-secondary)]">
+                    {finding.detail}
+                  </p>
                   {finding.document_name ? (
                     <p className="mt-2 text-xs text-[var(--text-muted)]">
                       Attached PDF: {finding.document_name} |{" "}
@@ -672,7 +677,7 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
               caseId={snapshot.caseRecord.id}
               onSuccess={handleCaseMutationSuccess}
             />
-            <div className="space-y-3">
+            <div className="max-h-[480px] space-y-3 overflow-y-auto pr-1">
               {snapshot.mitigations.length === 0 ? (
                 <p className="helix-card text-sm text-[var(--text-secondary)]">
                   No mitigation steps recorded yet.
@@ -686,7 +691,9 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
                       {mitigation.status}
                     </span>
                   </div>
-                  <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">{mitigation.detail}</p>
+                  <p className="mt-2 max-h-24 overflow-y-auto text-sm leading-6 text-[var(--text-secondary)]">
+                    {mitigation.detail}
+                  </p>
                   {mitigation.document_name ? (
                     <p className="mt-2 text-xs text-[var(--text-muted)]">
                       Attached PDF: {mitigation.document_name} |{" "}
@@ -717,7 +724,7 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
               caseId={snapshot.caseRecord.id}
               onSuccess={handleCaseMutationSuccess}
             />
-            <div className="space-y-3">
+            <div className="max-h-[560px] space-y-3 overflow-y-auto pr-1">
               {snapshot.comments.length === 0 ? (
                 <p className="helix-card text-sm text-[var(--text-secondary)]">
                   No comments yet.
@@ -725,7 +732,9 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
               ) : null}
               {snapshot.comments.map((comment) => (
                 <div key={comment.id} className="helix-card">
-                  <p className="text-sm leading-6 text-[var(--text-secondary)]">{comment.body}</p>
+                  <p className="max-h-24 overflow-y-auto text-sm leading-6 text-[var(--text-secondary)]">
+                    {comment.body}
+                  </p>
                   <p className="mt-2 text-xs text-[var(--text-muted)]">
                     {userMap.get(comment.created_by) ?? "Unknown user"} |{" "}
                     {formatDateTime(comment.created_at)}
@@ -783,7 +792,7 @@ export function CaseDetailLive({ initialSnapshot, initialActivity }: CaseDetailL
           </CardDescription>
           <CardTitle className="font-heading text-xl">IOCs observed in this case</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="max-h-[420px] space-y-3 overflow-y-auto pr-1">
           {snapshot.indicators.length === 0 ? (
             <p className="helix-card text-sm text-[var(--text-secondary)]">
               No indicators linked yet.

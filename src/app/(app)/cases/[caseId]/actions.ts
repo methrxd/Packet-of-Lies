@@ -12,6 +12,7 @@ import {
   computeAnalysisScore,
 } from "@/lib/malware-analysis/scoring";
 import {
+  detectAnalysisInputType,
   normalizeAnalysisInput,
   analysisInputTypeOptions,
   analysisProviderOptions,
@@ -578,9 +579,12 @@ export async function runCaseAnalysisLiveAction(
   }
 
   const supabase = await createClient();
+  const detectedInputType = detectAnalysisInputType(parsed.data.inputValue);
+  const effectiveInputType = detectedInputType;
+  const trimmedInputValue = parsed.data.inputValue.trim();
   const normalizedInput = normalizeAnalysisInput(
-    parsed.data.inputType,
-    parsed.data.inputValue
+    effectiveInputType,
+    trimmedInputValue
   );
 
   const runInsert = await supabase
@@ -589,8 +593,8 @@ export async function runCaseAnalysisLiveAction(
       case_id: parsed.data.caseId,
       requested_by: auth.userId,
       provider: parsed.data.provider,
-      input_type: parsed.data.inputType,
-      input_value: parsed.data.inputValue.trim(),
+      input_type: effectiveInputType,
+      input_value: trimmedInputValue,
       input_normalized: normalizedInput,
       status: "queued",
       started_at: new Date().toISOString(),
@@ -607,12 +611,12 @@ export async function runCaseAnalysisLiveAction(
 
   await writeCaseActivity(parsed.data.caseId, auth.userId, "analysis_run_started", {
     provider: parsed.data.provider,
-    input_type: parsed.data.inputType,
+    input_type: effectiveInputType,
   });
 
   const providerResult = await provider.submit({
-    inputType: parsed.data.inputType,
-    inputValue: parsed.data.inputValue.trim(),
+    inputType: effectiveInputType,
+    inputValue: trimmedInputValue,
     normalizedInput,
   });
 
@@ -683,9 +687,12 @@ export async function useCachedAnalysisRunAction(
   }
 
   const supabase = await createClient();
+  const detectedInputType = detectAnalysisInputType(parsed.data.inputValue);
+  const effectiveInputType = detectedInputType;
+  const trimmedInputValue = parsed.data.inputValue.trim();
   const normalizedInput = normalizeAnalysisInput(
-    parsed.data.inputType,
-    parsed.data.inputValue
+    effectiveInputType,
+    trimmedInputValue
   );
 
   const { data: cachedRun, error: cachedError } = await supabase
@@ -694,7 +701,7 @@ export async function useCachedAnalysisRunAction(
       "id, provider_report_id, provider_report_url, verdict, report_metadata, behavior_summary, extracted_iocs, score_total, score_breakdown, rubric_id, rubric_snapshot"
     )
     .eq("provider", parsed.data.provider)
-    .eq("input_type", parsed.data.inputType)
+    .eq("input_type", effectiveInputType)
     .eq("input_normalized", normalizedInput)
     .eq("status", "completed")
     .order("completed_at", { ascending: false })
@@ -715,8 +722,8 @@ export async function useCachedAnalysisRunAction(
     case_id: parsed.data.caseId,
     requested_by: auth.userId,
     provider: parsed.data.provider,
-    input_type: parsed.data.inputType,
-    input_value: parsed.data.inputValue.trim(),
+    input_type: effectiveInputType,
+    input_value: trimmedInputValue,
     input_normalized: normalizedInput,
     status: "completed",
     provider_report_id: cachedRun.provider_report_id,
