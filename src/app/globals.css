@@ -183,6 +183,11 @@
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.04),
       0 28px 60px rgba(0, 0, 0, 0.42);
+    transition:
+      border-color 180ms ease,
+      box-shadow 180ms ease,
+      transform 180ms ease,
+      background 180ms ease;
   }
 
   .helix-shell::before {
@@ -256,6 +261,11 @@
     @apply rounded-2xl border p-4 md:p-5;
     border-color: rgba(255, 255, 255, 0.08);
     background: rgba(255, 255, 255, 0.02);
+    transition:
+      border-color 180ms ease,
+      background-color 180ms ease,
+      box-shadow 180ms ease,
+      transform 180ms ease;
   }
 
   .helix-terminal {
@@ -354,6 +364,77 @@
       radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.58) 78%),
       linear-gradient(90deg, rgba(0, 0, 0, 0.35), transparent 18%, transparent 82%, rgba(0, 0, 0, 0.35));
   }
+
+  .route-transition {
+    animation: route-enter 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .loading-panel {
+    animation: panel-rise 460ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .loading-ring {
+    @apply absolute inset-0 rounded-2xl;
+    border: 1px solid rgba(2, 249, 109, 0.42);
+    animation: pulse-ring 1.6s ease-in-out infinite;
+  }
+
+  .skeleton-bar {
+    @apply overflow-hidden rounded-full;
+    background: rgba(255, 255, 255, 0.06);
+    position: relative;
+  }
+
+  .skeleton-bar::after {
+    content: "";
+    @apply absolute inset-y-0 w-1/2;
+    left: -50%;
+    background: linear-gradient(90deg, transparent, rgba(2, 249, 109, 0.26), transparent);
+    animation: skeleton-sweep 1.35s ease-in-out infinite;
+  }
+
+  .pending-state {
+    @apply flex items-center gap-3 rounded-xl border px-3 py-2 text-sm;
+    border-color: rgba(2, 249, 109, 0.2);
+    background: rgba(2, 249, 109, 0.07);
+    color: var(--accent-primary);
+  }
+
+  .pending-spinner {
+    @apply inline-flex size-4 shrink-0 rounded-full;
+    border: 2px solid rgba(2, 249, 109, 0.18);
+    border-top-color: var(--accent-primary);
+    animation: spin 800ms linear infinite;
+  }
+
+  .premium-button {
+    position: relative;
+    overflow: hidden;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      0 0 0 1px rgba(2, 249, 109, 0.06);
+  }
+
+  .premium-button::after {
+    content: "";
+    @apply pointer-events-none absolute inset-y-0 w-12;
+    left: -3rem;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+    transform: skewX(-18deg);
+    transition: left 420ms ease;
+  }
+
+  .premium-button:hover::after {
+    left: calc(100% + 3rem);
+  }
+
+  @media (hover: hover) {
+    .helix-card:hover {
+      border-color: rgba(2, 249, 109, 0.18);
+      box-shadow: 0 18px 38px rgba(0, 0, 0, 0.26);
+      transform: translateY(-1px);
+    }
+  }
 }
 
 @keyframes ascii-scan {
@@ -383,10 +464,73 @@
   }
 }
 
+@keyframes route-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.995);
+    filter: blur(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes panel-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-ring {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes skeleton-sweep {
+  0% {
+    left: -50%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .matrix-backdrop__column,
   .matrix-backdrop__scanline,
-  .ascii-scanline {
+  .ascii-scanline,
+  .route-transition,
+  .loading-panel,
+  .loading-ring,
+  .skeleton-bar::after,
+  .pending-spinner {
     animation: none;
+  }
+
+  .route-transition,
+  .loading-panel,
+  .helix-card,
+  .helix-shell {
+    transform: none !important;
   }
 }

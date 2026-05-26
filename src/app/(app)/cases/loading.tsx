@@ -1,15 +1,12 @@
+import { WorkspaceLoadingState } from "@/components/app/workspace-loading-state";
+
 export default function CasesLoading() {
   return (
-    <div className="flex min-h-[62svh] items-center justify-center">
-      <div className="helix-shell w-full max-w-3xl p-6">
-        <div className="helix-grid-lines opacity-20" />
-        <div className="relative z-10 space-y-4">
-          <p className="helix-kicker">Loading cases</p>
-          <h2 className="helix-headline text-2xl md:text-3xl">Fetching investigation queue</h2>
-          <p className="helix-copy">Please wait while case records are loaded.</p>
-        </div>
-      </div>
-    </div>
+    <WorkspaceLoadingState
+      eyebrow="Loading cases"
+      title="Fetching investigation queue"
+      description="Loading case records, ownership, statuses, and response context."
+    />
   );
 }
 

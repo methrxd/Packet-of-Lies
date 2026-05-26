@@ -100,7 +100,6 @@ export function LoginForm() {
 
     router.replace(destination);
     router.refresh();
-    setIsPending(false);
   }
 
   return (
@@ -143,6 +142,13 @@ export function LoginForm() {
 
       {mode === "signin" ? (
         <form onSubmit={handleSubmit} className="space-y-4">
+          {isPending ? (
+            <div className="pending-state">
+              <span className="pending-spinner" />
+              <span>Signing in, please wait while your workspace opens.</span>
+            </div>
+          ) : null}
+
           <div className="space-y-2">
             <label
               htmlFor="identifier"
@@ -190,9 +196,9 @@ export function LoginForm() {
           <button
             type="submit"
             disabled={isPending}
-            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-[var(--accent-border)] bg-[var(--accent-soft)] font-medium text-primary transition-colors hover:bg-[color:rgba(2,249,109,0.14)] disabled:cursor-not-allowed disabled:opacity-60"
+            className="premium-button inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-[var(--accent-border)] bg-[var(--accent-soft)] font-medium text-primary transition-colors hover:bg-[color:rgba(2,249,109,0.14)] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <ShieldCheck className="size-4" />
+            {isPending ? <span className="pending-spinner" /> : <ShieldCheck className="size-4" />}
             {isPending ? "Signing in..." : "Sign in to case workspace"}
           </button>
         </form>
@@ -303,8 +309,9 @@ export function LoginForm() {
           <button
             type="submit"
             disabled={joinPending}
-            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-[var(--accent-border)] bg-[var(--accent-soft)] font-medium text-primary transition-colors hover:bg-[color:rgba(2,249,109,0.14)] disabled:cursor-not-allowed disabled:opacity-60"
+            className="premium-button inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-[var(--accent-border)] bg-[var(--accent-soft)] font-medium text-primary transition-colors hover:bg-[color:rgba(2,249,109,0.14)] disabled:cursor-not-allowed disabled:opacity-60"
           >
+            {joinPending ? <span className="pending-spinner" /> : null}
             {joinPending ? "Creating account..." : "Create account with join code"}
           </button>
         </form>
@@ -353,8 +360,9 @@ export function LoginForm() {
             <button
               type="submit"
               disabled={requestPending}
-              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/3 font-medium text-[var(--text-primary)] transition-colors hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-60"
+              className="premium-button inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/3 font-medium text-[var(--text-primary)] transition-colors hover:bg-white/8 disabled:cursor-not-allowed disabled:opacity-60"
             >
+              {requestPending ? <span className="pending-spinner" /> : null}
               {requestPending ? "Sending code..." : "Send OTP to registered email"}
             </button>
           </form>
@@ -452,8 +460,9 @@ export function LoginForm() {
             <button
               type="submit"
               disabled={resetPending}
-              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-[var(--accent-border)] bg-[var(--accent-soft)] font-medium text-primary transition-colors hover:bg-[color:rgba(2,249,109,0.14)] disabled:cursor-not-allowed disabled:opacity-60"
+              className="premium-button inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-[var(--accent-border)] bg-[var(--accent-soft)] font-medium text-primary transition-colors hover:bg-[color:rgba(2,249,109,0.14)] disabled:cursor-not-allowed disabled:opacity-60"
             >
+              {resetPending ? <span className="pending-spinner" /> : null}
               {resetPending ? "Resetting password..." : "Verify OTP and reset password"}
             </button>
           </form>

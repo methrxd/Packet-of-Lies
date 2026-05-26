@@ -112,9 +112,9 @@ export function ProfileSettingsForm({
       <button
         type="submit"
         disabled={isPending}
-        className={`inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-[var(--accent-border)] bg-[var(--accent-soft)] font-medium text-primary transition-colors hover:bg-[color:rgba(2,249,109,0.14)] disabled:cursor-not-allowed disabled:opacity-60 ${compact ? "w-auto px-4" : "w-full"}`}
+        className={`premium-button inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-[var(--accent-border)] bg-[var(--accent-soft)] font-medium text-primary transition-colors hover:bg-[color:rgba(2,249,109,0.14)] disabled:cursor-not-allowed disabled:opacity-60 ${compact ? "w-auto px-4" : "w-full"}`}
       >
-        <ShieldCheck className="size-4" />
+        {isPending ? <span className="pending-spinner" /> : <ShieldCheck className="size-4" />}
         {isPending ? "Saving profile..." : "Save profile"}
       </button>
     </form>

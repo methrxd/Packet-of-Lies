@@ -134,9 +134,9 @@ export function BootstrapForm() {
       <button
         type="submit"
         disabled={isPending}
-        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-[var(--accent-border)] bg-[var(--accent-soft)] font-medium text-primary transition-colors hover:bg-[color:rgba(2,249,109,0.14)] disabled:cursor-not-allowed disabled:opacity-60"
+        className="premium-button inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-[var(--accent-border)] bg-[var(--accent-soft)] font-medium text-primary transition-colors hover:bg-[color:rgba(2,249,109,0.14)] disabled:cursor-not-allowed disabled:opacity-60"
       >
-        <ShieldCheck className="size-4" />
+        {isPending ? <span className="pending-spinner" /> : <ShieldCheck className="size-4" />}
         {isPending ? "Creating super admin..." : "Create first super admin"}
       </button>
     </form>
