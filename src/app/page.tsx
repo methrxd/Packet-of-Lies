@@ -9,12 +9,9 @@ import {
   ExternalLink,
   FileText,
   Fingerprint,
-  GraduationCap,
   LockKeyhole,
   Radar,
   ShieldCheck,
-  Siren,
-  Sparkles,
   TerminalSquare,
   Workflow,
 } from "lucide-react";
@@ -24,90 +21,97 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { getAuthContext } from "@/lib/auth";
 import { isBootstrapRequired } from "@/lib/bootstrap-state";
 
-const workflowSteps = [
+const productFlow = [
   {
-    title: "Create a case",
-    body: "Open an investigation, set severity and priority, and assign ownership.",
+    title: "Triage",
+    text: "Open a case, set urgency, and give every suspicious artifact a place to live.",
     icon: Workflow,
   },
   {
-    title: "Submit evidence",
-    body: "Capture URLs, hashes, files, domains, IPs, emails, and manual incident context.",
-    icon: Fingerprint,
-  },
-  {
-    title: "Run analysis",
-    body: "Use configured VirusTotal or Hybrid Analysis checks for provider-backed signals.",
+    title: "Analyze",
+    text: "Submit hashes, URLs, files, domains, and IPs for provider-backed intelligence.",
     icon: BrainCircuit,
   },
   {
-    title: "Document response",
-    body: "Record findings, mitigations, comments, IOCs, and final report recommendations.",
-    icon: FileText,
+    title: "Contain",
+    text: "Turn evidence into findings, response actions, and mitigation notes.",
+    icon: ShieldCheck,
+  },
+  {
+    title: "Report",
+    text: "Package the case story into IOCs, recommendations, and a review-ready report.",
+    icon: BookOpenCheck,
   },
 ];
 
-const features = [
+const featureRows = [
   {
-    title: "Investigation caseboard",
-    body: "Lifecycle status, severity, priority, assignment, and case history in one workspace.",
+    title: "Caseboard",
+    text: "A live investigation desk for status, priority, severity, ownership, and handoff notes.",
     icon: Radar,
   },
   {
     title: "Analysis hub",
-    body: "Provider-backed hash and URL checks with verdicts, risk scoring, and report links.",
+    text: "VirusTotal and Hybrid Analysis runs sit beside cached results and provider report links.",
     icon: TerminalSquare,
   },
   {
-    title: "Evidence and mitigations",
-    body: "Analyst findings, PDF evidence attachments, response actions, and live comments.",
-    icon: ShieldCheck,
+    title: "Evidence trail",
+    text: "Findings, mitigations, comments, PDF attachments, and activity history stay tied to the case.",
+    icon: Fingerprint,
   },
   {
     title: "IOC registry",
-    body: "Track observables such as SHA256 hashes, domains, IPs, URLs, emails, and filenames.",
+    text: "Hashes, URLs, domains, IP addresses, emails, and filenames become searchable threat context.",
     icon: Database,
   },
   {
-    title: "Reports",
-    body: "Generate incident summaries with findings and recommendations for review.",
-    icon: BookOpenCheck,
+    title: "Report studio",
+    text: "Generate incident summaries that read like a response record, not a loose pile of notes.",
+    icon: FileText,
   },
   {
-    title: "Admin controls",
-    body: "Role permissions, access requests, invite flows, and profile-managed accounts.",
+    title: "Controlled access",
+    text: "Admin approval, joining codes, roles, permissions, profile setup, and protected routes.",
     icon: LockKeyhole,
   },
 ];
 
-const prdCoverage = [
-  "Malware detection and triage workflow",
-  "Provider-backed static and dynamic intelligence",
-  "Incident response and mitigation documentation",
-  "Root cause analysis support through case notes and reports",
-  "Indicator tracking for threat intelligence handoff",
-  "Access control, roles, and audit-friendly activity history",
+const prdSignals = [
+  "Detection and triage",
+  "Provider-backed analysis",
+  "Incident response notes",
+  "Mitigation tracking",
+  "IOC management",
+  "Case reporting",
 ];
 
-const stack = [
-  "Next.js 16 App Router",
-  "React 19",
-  "TypeScript",
-  "Tailwind CSS v4",
-  "Base UI and shadcn-style primitives",
-  "Supabase Auth, Postgres, Storage, SSR, and RLS",
-  "VirusTotal API",
-  "Hybrid Analysis API",
-  "Nodemailer email flows",
-  "Sentry",
-  "Vercel-ready deployment",
+const techLogos = [
+  { name: "Next.js", src: "https://cdn.simpleicons.org/nextdotjs/ffffff" },
+  { name: "React", src: "https://cdn.simpleicons.org/react/61DAFB" },
+  { name: "TypeScript", src: "https://cdn.simpleicons.org/typescript/3178C6" },
+  { name: "Tailwind CSS", src: "https://cdn.simpleicons.org/tailwindcss/38BDF8" },
+  { name: "Supabase", src: "https://cdn.simpleicons.org/supabase/3FCF8E" },
+  { name: "PostgreSQL", src: "https://cdn.simpleicons.org/postgresql/60A5FA" },
+  { name: "Vercel", src: "https://cdn.simpleicons.org/vercel/ffffff" },
+  { name: "Sentry", src: "https://cdn.simpleicons.org/sentry/ffffff" },
+  { name: "Node.js", src: "https://cdn.simpleicons.org/nodedotjs/5FA04E" },
+  { name: "GitHub", src: "https://cdn.simpleicons.org/github/ffffff" },
+  { name: "VirusTotal", src: "https://cdn.simpleicons.org/virustotal/394EFF" },
+  { name: "Nodemailer", src: "https://cdn.simpleicons.org/maildotru/22C55E" },
 ];
 
-const creatorHighlights = [
-  "Computer Science - Cybersecurity student at KLH University, Hyderabad",
-  "Works with Wazuh, Splunk, Suricata, Wireshark, Nmap, Burp Suite, and FortiGate NGFW",
-  "Builds with Linux, Ansible, Docker, Python, Bash, REST APIs, and Git/GitHub",
-  "Interested in security operations, self-hosting, infrastructure automation, and incident response tooling",
+const creatorLogos = [
+  { name: "Wazuh", src: "https://cdn.simpleicons.org/wazuh/00A9E0" },
+  { name: "Splunk", src: "https://cdn.simpleicons.org/splunk/ffffff" },
+  { name: "Suricata", src: "https://cdn.simpleicons.org/suricata/EF3B2D" },
+  { name: "Wireshark", src: "https://cdn.simpleicons.org/wireshark/1679A7" },
+  { name: "Nmap", src: "https://cdn.simpleicons.org/nmap/7AA6C2" },
+  { name: "Docker", src: "https://cdn.simpleicons.org/docker/2496ED" },
+  { name: "Python", src: "https://cdn.simpleicons.org/python/FFD43B" },
+  { name: "Linux", src: "https://cdn.simpleicons.org/linux/FCC624" },
+  { name: "Ansible", src: "https://cdn.simpleicons.org/ansible/EE0000" },
+  { name: "Git", src: "https://cdn.simpleicons.org/git/F05032" },
 ];
 
 function LandingLink({
@@ -132,6 +136,18 @@ function LandingLink({
   );
 }
 
+function LogoTile({ name, src }: { name: string; src: string }) {
+  return (
+    <div className="logo-tile">
+      <div className="logo-tile__mark">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={src} alt="" className="size-7 object-contain" loading="lazy" />
+      </div>
+      <span>{name}</span>
+    </div>
+  );
+}
+
 export default async function HomePage() {
   let bootstrapRequired = false;
   try {
@@ -145,10 +161,10 @@ export default async function HomePage() {
 
   return (
     <main className="relative min-h-svh overflow-hidden">
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(1,5,3,0.08),rgba(1,4,3,0.72)_38%,rgba(1,3,2,0.92))]" />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(1,5,3,0.05),rgba(1,4,3,0.66)_40%,rgba(1,3,2,0.94))]" />
       <div className="helix-grid-lines opacity-20" />
 
-      <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col px-4 pb-16 pt-6 md:px-8 md:pb-20">
+      <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col px-4 pb-16 pt-6 md:px-8 md:pb-24">
         <header className="sticky top-4 z-20">
           <div className="helix-shell rounded-full border-white/14 px-4 py-3 backdrop-blur-xl">
             <div className="helix-grid-lines opacity-10" />
@@ -173,17 +189,17 @@ export default async function HomePage() {
               </Link>
 
               <nav className="hidden items-center gap-5 text-xs font-medium text-[var(--text-secondary)] lg:flex">
-                <a href="#workflow" className="transition-colors hover:text-primary">
-                  Workflow
+                <a href="#flow" className="transition-colors hover:text-primary">
+                  Flow
                 </a>
                 <a href="#features" className="transition-colors hover:text-primary">
-                  Features
+                  Workspace
                 </a>
                 <a href="#stack" className="transition-colors hover:text-primary">
                   Stack
                 </a>
                 <a href="#creator" className="transition-colors hover:text-primary">
-                  About
+                  Creator
                 </a>
               </nav>
 
@@ -213,25 +229,21 @@ export default async function HomePage() {
           </div>
         </header>
 
-        <section className="grid min-h-[calc(100svh-6rem)] items-center gap-8 py-12 md:py-16 lg:grid-cols-[1.05fr_0.95fr]">
+        <section className="landing-reveal grid min-h-[calc(100svh-6rem)] items-center gap-10 py-12 md:py-16 lg:grid-cols-[0.92fr_1.08fr]">
           <div className="space-y-7">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--accent-border)] bg-[var(--accent-soft)] px-3 py-2 text-xs font-medium text-primary">
-              <Siren className="size-4" />
-              Academic malware response workspace
-            </div>
             <div className="space-y-5">
-              <h1 className="font-heading text-5xl leading-[0.95] font-semibold tracking-normal text-[var(--text-primary)] md:text-7xl">
-                Packet of Lies
+              <h1 className="font-heading text-5xl leading-[0.92] font-semibold tracking-normal text-[var(--text-primary)] md:text-7xl">
+                Malware work should leave a clean trail.
               </h1>
               <p className="max-w-2xl text-lg leading-8 text-[var(--text-secondary)] md:text-xl">
-                A malware analysis and mitigation workspace built for structured incident
-                response, evidence tracking, IOC management, and cybersecurity demonstrations.
+                Packet of Lies turns suspicious links, hashes, files, and analyst notes
+                into a case story your team can follow from first signal to final report.
               </p>
             </div>
-            <p className="max-w-2xl text-sm leading-7 text-[var(--text-muted)]">
-              Move from suspicious artifact to documented response: create a case, submit
-              indicators or URLs, run provider-backed analysis, record findings, plan
-              mitigations, and generate reports.
+            <p className="max-w-xl text-sm leading-7 text-[var(--text-muted)]">
+              Built for a cybersecurity university project, it keeps the dangerous parts
+              outside the browser and focuses on the work that makes incident response
+              credible: triage, evidence, mitigations, IOCs, access control, and reports.
             </p>
             <div className="flex flex-wrap gap-3">
               {auth ? (
@@ -249,226 +261,232 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="helix-shell p-4 md:p-5">
-            <div className="helix-grid-lines opacity-20" />
-            <div className="relative z-10 space-y-4">
-              <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/3 px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <Image src="/pollogo.svg" alt="" width={36} height={36} className="size-9" />
+          <div className="landing-console landing-float">
+            <div className="landing-console__glow" />
+            <div className="relative z-10 grid gap-4 lg:grid-cols-[0.85fr_1.15fr]">
+              <div className="space-y-4">
+                <div className="ops-node ops-node--primary">
+                  <Image src="/pollogo.svg" alt="" width={44} height={44} className="size-11" />
                   <div>
-                    <p className="font-heading text-sm font-semibold">Incident CASE-01024</p>
-                    <p className="text-xs text-[var(--text-muted)]">Provider-backed analysis active</p>
+                    <p className="font-heading text-lg font-semibold">Packet of Lies</p>
+                    <p className="text-sm text-[var(--text-secondary)]">
+                      investigation workspace
+                    </p>
                   </div>
                 </div>
-                <span className="rounded-full border border-[var(--accent-border)] bg-[var(--accent-soft)] px-3 py-1 text-xs text-primary">
-                  investigating
-                </span>
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-3">
-                {[
-                  ["Risk", "82"],
-                  ["IOCs", "14"],
-                  ["Actions", "06"],
-                ].map(([label, value]) => (
-                  <div key={label} className="helix-card p-4">
-                    <p className="helix-kicker">{label}</p>
-                    <p className="font-mono-ui mt-2 text-4xl font-semibold text-[var(--text-primary)]">
-                      {value}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="helix-terminal p-4">
-                <div className="space-y-3">
+                <div className="grid grid-cols-3 gap-3">
                   {[
-                    "VirusTotal run completed :: verdict suspicious",
-                    "Finding added :: credential theft behavior documented",
-                    "Mitigation planned :: isolate affected endpoint",
-                    "IOC recorded :: sha256 linked to active case",
-                  ].map((line) => (
-                    <p key={line} className="border-l border-[var(--accent-border)] pl-3">
-                      {line}
-                    </p>
+                    ["Risk", "82"],
+                    ["IOCs", "14"],
+                    ["Tasks", "06"],
+                  ].map(([label, value]) => (
+                    <div key={label} className="metric-tile">
+                      <p>{label}</p>
+                      <strong>{value}</strong>
+                    </div>
                   ))}
                 </div>
+                <div className="helix-terminal p-4">
+                  <p>CASE-01024 :: URL submitted</p>
+                  <p>VT completed :: suspicious</p>
+                  <p>Finding saved :: credential theft pattern</p>
+                  <p>Mitigation queued :: isolate endpoint</p>
+                </div>
+              </div>
+
+              <div className="attack-map" aria-label="Case workflow diagram">
+                <div className="attack-map__line" />
+                {productFlow.map((step, index) => (
+                  <div key={step.title} className={`attack-map__node attack-map__node--${index + 1}`}>
+                    <step.icon className="size-5 text-primary" />
+                    <span>{step.title}</span>
+                  </div>
+                ))}
+                <div className="attack-map__center">
+                  <Radar className="size-8 text-primary" />
+                  <span>case stream</span>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="space-y-5 py-8">
-          <div className="max-w-3xl space-y-3">
-            <p className="helix-kicker">What it is</p>
-            <h2 className="font-heading text-3xl font-semibold tracking-normal md:text-4xl">
-              A controlled workspace for malware response, not a malware lab.
-            </h2>
-            <p className="helix-copy">
-              Packet of Lies focuses on the operational side of malware analysis and
-              mitigations. It does not create malware or execute unsafe samples. It gives
-              analysts a structured place to triage, document, analyze with external
-              providers, plan mitigations, and prepare reports.
-            </p>
-          </div>
-        </section>
-
-        <section id="workflow" className="grid gap-4 py-8 md:grid-cols-2 lg:grid-cols-4">
-          {workflowSteps.map((step, index) => (
-            <div key={step.title} className="helix-card min-h-52">
-              <div className="flex items-center justify-between">
-                <step.icon className="size-5 text-primary" />
-                <span className="font-mono-ui text-xs text-[var(--text-muted)]">
-                  0{index + 1}
-                </span>
-              </div>
-              <h3 className="mt-8 font-heading text-xl font-semibold">{step.title}</h3>
-              <p className="mt-3 text-sm leading-6 text-[var(--text-secondary)]">{step.body}</p>
-            </div>
-          ))}
-        </section>
-
-        <section id="features" className="space-y-6 py-10">
-          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-            <div className="max-w-3xl space-y-3">
-              <p className="helix-kicker">Product surface</p>
-              <h2 className="font-heading text-3xl font-semibold tracking-normal md:text-4xl">
-                Everything needed for a clean university demo.
-              </h2>
-            </div>
-            <p className="max-w-md text-sm leading-6 text-[var(--text-muted)]">
-              The app maps the PRD into a practical MVP: case operations, evidence,
-              indicators, provider analysis, reporting, and access control.
-            </p>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {features.map((feature) => (
-              <Card key={feature.title} className="min-h-52">
-                <CardHeader>
-                  <feature.icon className="mb-3 size-5 text-primary" />
-                  <CardTitle>{feature.title}</CardTitle>
-                  <CardDescription>{feature.body}</CardDescription>
-                </CardHeader>
-              </Card>
-            ))}
-          </div>
-        </section>
-
-        <section className="grid gap-4 py-10 lg:grid-cols-[0.95fr_1.05fr]">
-          <div className="helix-shell p-6 md:p-7">
-            <div className="helix-grid-lines opacity-20" />
-            <div className="relative z-10 space-y-5">
-              <p className="helix-kicker">PRD coverage</p>
-              <h2 className="font-heading text-3xl font-semibold tracking-normal">
-                Built around malware analysis and mitigations.
+        <section id="flow" className="landing-reveal py-14">
+          <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr]">
+            <div className="space-y-4">
+              <h2 className="font-heading text-4xl font-semibold tracking-normal md:text-5xl">
+                From artifact to answer.
               </h2>
               <p className="helix-copy">
-                The commercial PRD describes a much larger enterprise system. Packet of
-                Lies implements the academic project version: the workflows and evidence
-                model are present, while real endpoint, SIEM, firewall, and backup control
-                remain outside this MVP.
+                A malware investigation is only useful when every action can be traced.
+                Packet of Lies makes the workflow visible instead of hiding it inside
+                scattered notes and screenshots.
               </p>
             </div>
+
+            <div className="flow-rail">
+              {productFlow.map((step, index) => (
+                <div key={step.title} className="flow-step">
+                  <div className="flow-step__index">0{index + 1}</div>
+                  <div className="flow-step__icon">
+                    <step.icon className="size-5" />
+                  </div>
+                  <div>
+                    <h3>{step.title}</h3>
+                    <p>{step.text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="features" className="landing-reveal py-14">
+          <div className="mb-8 grid gap-4 md:grid-cols-[0.8fr_1.2fr] md:items-end">
+            <h2 className="font-heading text-4xl font-semibold tracking-normal md:text-5xl">
+              The workspace, not the sales pitch.
+            </h2>
+            <p className="text-base leading-8 text-[var(--text-secondary)]">
+              Cases, evidence, provider analysis, IOCs, reports, and admin control are
+              designed as one investigation surface. Each module feeds the next one.
+            </p>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            {prdCoverage.map((item) => (
-              <div key={item} className="helix-card flex items-start gap-3">
-                <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-primary" />
-                <p className="text-sm leading-6 text-[var(--text-secondary)]">{item}</p>
+          <div className="feature-board">
+            <div className="feature-board__diagram">
+              <div className="feature-core">
+                <Image src="/pollogo.svg" alt="" width={58} height={58} className="size-14" />
+                <span>Packet of Lies</span>
+              </div>
+              {featureRows.map((feature, index) => (
+                <div key={feature.title} className={`feature-orbit feature-orbit--${index + 1}`}>
+                  <feature.icon className="size-5 text-primary" />
+                </div>
+              ))}
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              {featureRows.map((feature) => (
+                <div key={feature.title} className="feature-strip">
+                  <feature.icon className="size-5 text-primary" />
+                  <div>
+                    <h3>{feature.title}</h3>
+                    <p>{feature.text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="landing-reveal grid gap-5 py-14 lg:grid-cols-[0.92fr_1.08fr]">
+          <div className="statement-panel">
+            <h2 className="font-heading text-4xl font-semibold tracking-normal">
+              Honest PRD coverage for an academic build.
+            </h2>
+            <p>
+              The PRD describes an enterprise malware program. This project implements
+              the version that makes sense for a university deadline: the workflow,
+              evidence model, analysis integrations, reporting, and access control.
+              Endpoint isolation, SIEM control, firewall orchestration, and real malware
+              execution stay outside the app.
+            </p>
+          </div>
+
+          <div className="signal-grid">
+            {prdSignals.map((item) => (
+              <div key={item} className="signal-row">
+                <CheckCircle2 className="size-5 text-primary" />
+                <span>{item}</span>
               </div>
             ))}
           </div>
         </section>
 
-        <section id="stack" className="grid gap-4 py-10 lg:grid-cols-[0.8fr_1.2fr]">
-          <div className="space-y-3">
-            <p className="helix-kicker">Technical stack</p>
-            <h2 className="font-heading text-3xl font-semibold tracking-normal md:text-4xl">
-              Modern web app, Supabase-backed security workflow.
-            </h2>
-            <p className="helix-copy">
-              The stack is intentionally practical for a university deadline: fast to demo,
-              deployable, and backed by real database, auth, storage, and role policies.
-            </p>
+        <section id="stack" className="landing-reveal py-14">
+          <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-center">
+            <div className="space-y-4">
+              <h2 className="font-heading text-4xl font-semibold tracking-normal md:text-5xl">
+                Built on tools people recognize.
+              </h2>
+              <p className="helix-copy">
+                The stack stays practical: a Next.js interface, Supabase-backed data and
+                auth, provider APIs for malware intelligence, and deployment-ready
+                production tooling.
+              </p>
+            </div>
+            <div className="logo-cloud">
+              {techLogos.map((logo) => (
+                <LogoTile key={logo.name} {...logo} />
+              ))}
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {stack.map((item) => (
-              <span
-                key={item}
-                className="rounded-full border border-white/10 bg-white/4 px-3 py-2 text-sm text-[var(--text-secondary)]"
+        </section>
+
+        <section id="creator" className="landing-reveal grid gap-8 py-14 lg:grid-cols-[0.82fr_1.18fr] lg:items-center">
+          <div className="creator-frame">
+            <div className="creator-frame__ring" />
+            <Image
+              src="/creator-venkat.jpg"
+              alt="Venkata Sai Prasanna Reddy Solipeta"
+              width={360}
+              height={360}
+              className="relative z-10 aspect-square rounded-full object-cover"
+              priority
+            />
+          </div>
+
+          <div className="space-y-6">
+            <div className="space-y-4">
+              <h2 className="font-heading text-4xl font-semibold tracking-normal md:text-5xl">
+                I built Packet of Lies to make malware response easier to present,
+                follow, and defend.
+              </h2>
+              <p className="text-base leading-8 text-[var(--text-secondary)]">
+                I&apos;m Venkata Sai Prasanna Reddy Solipeta, a Computer Science -
+                Cybersecurity student at KLH University, Hyderabad. My work leans into
+                security operations, network defense, self-hosted infrastructure,
+                automation, and practical incident response tooling.
+              </p>
+            </div>
+
+            <div className="logo-cloud logo-cloud--compact">
+              {creatorLogos.map((logo) => (
+                <LogoTile key={logo.name} {...logo} />
+              ))}
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <a
+                href="https://github.com/methrxd"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-10 items-center gap-2 rounded-full border border-white/12 bg-white/4 px-4 text-sm text-[var(--text-primary)] transition-colors hover:bg-white/8"
               >
-                {item}
-              </span>
-            ))}
-          </div>
-        </section>
-
-        <section id="creator" className="grid gap-4 py-10 lg:grid-cols-[1fr_0.9fr]">
-          <div className="helix-shell p-6 md:p-8">
-            <div className="helix-grid-lines opacity-20" />
-            <div className="relative z-10 space-y-5">
-              <div className="flex items-center gap-3">
-                <div className="flex size-12 items-center justify-center rounded-2xl border border-[var(--accent-border)] bg-[var(--accent-soft)] text-primary">
-                  <GraduationCap className="size-6" />
-                </div>
-                <div>
-                  <p className="helix-kicker">Creator</p>
-                  <h2 className="font-heading text-2xl font-semibold">
-                    Venkata Sai Prasanna Reddy Solipeta
-                  </h2>
-                </div>
-              </div>
-              <p className="helix-copy">
-                Venkata Sai Prasanna Reddy Solipeta is a Computer Science -
-                Cybersecurity student at KLH University, Hyderabad. His work and
-                interests sit around security operations, network defense, self-hosted
-                infrastructure, automation, and practical incident response tooling.
-              </p>
-              <div className="flex flex-wrap gap-3">
-                <a
-                  href="https://github.com/methrxd"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex h-10 items-center gap-2 rounded-full border border-white/12 bg-white/4 px-4 text-sm text-[var(--text-primary)] transition-colors hover:bg-white/8"
-                >
-                  <ExternalLink className="size-4" />
-                  GitHub
-                </a>
-                <a
-                  href="https://linkedin.com/in/vsprs"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex h-10 items-center gap-2 rounded-full border border-white/12 bg-white/4 px-4 text-sm text-[var(--text-primary)] transition-colors hover:bg-white/8"
-                >
-                  <ExternalLink className="size-4" />
-                  LinkedIn
-                </a>
-              </div>
+                GitHub
+                <ExternalLink className="size-4" />
+              </a>
+              <a
+                href="https://linkedin.com/in/vsprs"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-10 items-center gap-2 rounded-full border border-white/12 bg-white/4 px-4 text-sm text-[var(--text-primary)] transition-colors hover:bg-white/8"
+              >
+                LinkedIn
+                <ExternalLink className="size-4" />
+              </a>
             </div>
           </div>
-
-          <div className="space-y-3">
-            {creatorHighlights.map((item) => (
-              <div key={item} className="helix-card flex gap-3">
-                <Sparkles className="mt-0.5 size-4 shrink-0 text-primary" />
-                <p className="text-sm leading-6 text-[var(--text-secondary)]">{item}</p>
-              </div>
-            ))}
-          </div>
         </section>
 
-        <section id="request-access" className="grid gap-4 py-10 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="space-y-3">
-            <p className="helix-kicker">Access</p>
-            <h2 className="font-heading text-3xl font-semibold tracking-normal md:text-4xl">
-              Start with approval, then join the workspace.
+        <section id="request-access" className="landing-reveal grid gap-5 py-14 lg:grid-cols-[0.85fr_1.15fr]">
+          <div className="space-y-4">
+            <h2 className="font-heading text-4xl font-semibold tracking-normal md:text-5xl">
+              Enter through approval. Work inside the case room.
             </h2>
             <p className="helix-copy">
-              Packet of Lies uses a controlled access flow. Submit a request, wait for
-              admin approval, then use the one-time joining code sent by email. Existing
-              users can sign in directly.
+              Packet of Lies uses controlled access: request approval, receive a joining
+              code, create your account, and continue into the protected workspace.
             </p>
             {!auth && !bootstrapRequired ? (
               <LandingLink href="/auth/login" variant="secondary">
@@ -480,9 +498,9 @@ export default async function HomePage() {
           {bootstrapRequired ? (
             <Card className="panel-shadow">
               <CardHeader>
-                <CardTitle>First admin required</CardTitle>
+                <CardTitle>Set up the first admin</CardTitle>
                 <CardDescription>
-                  Set up the first admin account before access requests can be reviewed.
+                  The first admin account must exist before access requests can be reviewed.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -492,9 +510,9 @@ export default async function HomePage() {
           ) : auth ? (
             <Card className="panel-shadow">
               <CardHeader>
-                <CardTitle>You are signed in</CardTitle>
+                <CardTitle>Workspace is ready</CardTitle>
                 <CardDescription>
-                  Continue to the protected investigation workspace.
+                  Continue to the protected investigation environment.
                 </CardDescription>
               </CardHeader>
               <CardContent>
