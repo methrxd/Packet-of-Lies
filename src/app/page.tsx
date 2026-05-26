@@ -118,6 +118,26 @@ const creatorLogos = [
   { name: "Git", src: "https://cdn.simpleicons.org/git/F05032" },
 ] as const;
 
+const scanTickerItems = [
+  "hash: 3f2a...9c1e",
+  "url: credential-gate flagged",
+  "ioc: domain linked",
+  "verdict: suspicious",
+  "mitigation: block and monitor",
+  "report: evidence attached",
+  "case: CASE-01024 updated",
+  "analyst: finding recorded",
+];
+
+const caseTelemetry = [
+  ["Submitted", "URL artifact"],
+  ["Provider", "VirusTotal"],
+  ["Verdict", "Suspicious"],
+  ["Linked", "4 IOCs"],
+  ["Action", "Block URL"],
+  ["Report", "Draft ready"],
+];
+
 function LandingLink({
   href,
   children,
@@ -308,6 +328,9 @@ export default async function HomePage() {
               </div>
 
               <div className="attack-map" aria-label="Case workflow diagram">
+                <div className="packet-trace packet-trace--one" />
+                <div className="packet-trace packet-trace--two" />
+                <div className="packet-trace packet-trace--three" />
                 <div className="attack-map__line" />
                 {productFlow.map((step, index) => (
                   <div key={step.title} className={`attack-map__node attack-map__node--${index + 1}`}>
@@ -320,6 +343,16 @@ export default async function HomePage() {
                   <span>case stream</span>
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="landing-reveal py-8">
+          <div className="scan-ribbon">
+            <div className="scan-ribbon__track">
+              {[...scanTickerItems, ...scanTickerItems].map((item, index) => (
+                <span key={`${item}-${index}`}>{item}</span>
+              ))}
             </div>
           </div>
         </section>
@@ -420,6 +453,28 @@ export default async function HomePage() {
                 <span>{item}</span>
               </div>
             ))}
+          </div>
+        </section>
+
+        <section className="landing-reveal py-14">
+          <div className="telemetry-wall">
+            <div className="telemetry-wall__copy">
+              <h2 className="font-heading text-4xl font-semibold tracking-normal md:text-5xl">
+                The case changes shape as evidence arrives.
+              </h2>
+              <p>
+                Provider results, analyst findings, linked observables, and mitigation
+                records are treated as one moving stream instead of separate screenshots.
+              </p>
+            </div>
+            <div className="telemetry-grid">
+              {caseTelemetry.map(([label, value], index) => (
+                <div key={label} className="telemetry-cell" style={{ "--delay": `${index * 120}ms` } as React.CSSProperties}>
+                  <span>{label}</span>
+                  <strong>{value}</strong>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 

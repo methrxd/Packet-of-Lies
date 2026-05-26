@@ -552,6 +552,77 @@
     bottom: 14%;
   }
 
+  .packet-trace {
+    @apply pointer-events-none absolute h-px w-40 rounded-full;
+    background: linear-gradient(90deg, transparent, rgba(2, 249, 109, 0.85), transparent);
+    box-shadow: 0 0 22px rgba(2, 249, 109, 0.42);
+    opacity: 0;
+    transform-origin: center;
+    animation: packet-travel 3.4s ease-in-out infinite;
+  }
+
+  .packet-trace--one {
+    left: 12%;
+    top: 31%;
+    transform: rotate(23deg);
+  }
+
+  .packet-trace--two {
+    right: 12%;
+    top: 62%;
+    transform: rotate(-28deg);
+    animation-delay: 900ms;
+  }
+
+  .packet-trace--three {
+    left: 34%;
+    bottom: 20%;
+    transform: rotate(-8deg);
+    animation-delay: 1700ms;
+  }
+
+  .scan-ribbon {
+    @apply relative overflow-hidden rounded-3xl border py-4;
+    border-color: rgba(2, 249, 109, 0.14);
+    background:
+      linear-gradient(90deg, rgba(2, 249, 109, 0.08), transparent 20%, transparent 80%, rgba(2, 249, 109, 0.08)),
+      rgba(255, 255, 255, 0.02);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      0 26px 70px rgba(0, 0, 0, 0.32);
+  }
+
+  .scan-ribbon::before,
+  .scan-ribbon::after {
+    content: "";
+    @apply pointer-events-none absolute inset-y-0 z-10 w-28;
+  }
+
+  .scan-ribbon::before {
+    left: 0;
+    background: linear-gradient(90deg, rgba(1, 5, 3, 0.95), transparent);
+  }
+
+  .scan-ribbon::after {
+    right: 0;
+    background: linear-gradient(270deg, rgba(1, 5, 3, 0.95), transparent);
+  }
+
+  .scan-ribbon__track {
+    @apply flex w-max items-center gap-4;
+    animation: ribbon-scroll 30s linear infinite;
+  }
+
+  .scan-ribbon__track span {
+    @apply rounded-2xl border px-4 py-2 text-xs uppercase tracking-[0.12em];
+    font-family:
+      "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;
+    border-color: rgba(2, 249, 109, 0.16);
+    background: rgba(2, 249, 109, 0.045);
+    color: rgba(170, 255, 209, 0.86);
+    box-shadow: inset 0 0 22px rgba(2, 249, 109, 0.04);
+  }
+
   .flow-rail {
     @apply relative grid gap-3;
   }
@@ -714,6 +785,57 @@
     @apply text-sm font-medium text-[var(--text-primary)];
   }
 
+  .telemetry-wall {
+    @apply relative grid gap-6 overflow-hidden rounded-3xl border p-6 md:p-8 lg:grid-cols-[0.78fr_1.22fr] lg:items-center;
+    border-color: rgba(255, 255, 255, 0.1);
+    background:
+      radial-gradient(circle at 78% 28%, rgba(2, 249, 109, 0.15), transparent 34%),
+      linear-gradient(135deg, rgba(8, 17, 10, 0.95), rgba(4, 7, 5, 0.96));
+  }
+
+  .telemetry-wall::before {
+    content: "";
+    @apply pointer-events-none absolute inset-0;
+    background:
+      linear-gradient(120deg, transparent 0%, rgba(2, 249, 109, 0.08) 40%, transparent 56%),
+      linear-gradient(rgba(2, 249, 109, 0.055) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 18px;
+    animation: telemetry-sweep 5.6s ease-in-out infinite;
+    opacity: 0.55;
+  }
+
+  .telemetry-wall__copy {
+    @apply relative z-10 space-y-4;
+  }
+
+  .telemetry-wall__copy p {
+    @apply text-base leading-8 text-[var(--text-secondary)];
+  }
+
+  .telemetry-grid {
+    @apply relative z-10 grid gap-3 sm:grid-cols-2 xl:grid-cols-3;
+  }
+
+  .telemetry-cell {
+    @apply min-h-36 rounded-3xl border p-5;
+    border-color: rgba(255, 255, 255, 0.1);
+    background:
+      radial-gradient(circle at 70% 0%, rgba(2, 249, 109, 0.12), transparent 44%),
+      rgba(255, 255, 255, 0.025);
+    animation: telemetry-pop 3.8s ease-in-out infinite;
+    animation-delay: var(--delay);
+  }
+
+  .telemetry-cell span {
+    @apply text-xs uppercase tracking-[0.16em] text-[var(--text-muted)];
+    font-family:
+      "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;
+  }
+
+  .telemetry-cell strong {
+    @apply mt-8 block font-heading text-2xl font-semibold text-[var(--text-primary)];
+  }
+
   .logo-cloud {
     @apply grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4;
   }
@@ -791,6 +913,7 @@
     .landing-reveal .feature-strip,
     .landing-reveal .logo-tile,
     .landing-reveal .signal-row,
+    .landing-reveal .telemetry-cell,
     .landing-reveal [data-slot="card"] {
       animation: card-reveal both;
       animation-timeline: view();
@@ -967,6 +1090,54 @@
   }
 }
 
+@keyframes packet-travel {
+  0% {
+    opacity: 0;
+    translate: -36px 0;
+  }
+  18%,
+  58% {
+    opacity: 0.88;
+  }
+  100% {
+    opacity: 0;
+    translate: 58px 0;
+  }
+}
+
+@keyframes ribbon-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes telemetry-sweep {
+  0%,
+  100% {
+    transform: translateX(-10%);
+    opacity: 0.38;
+  }
+  50% {
+    transform: translateX(10%);
+    opacity: 0.72;
+  }
+}
+
+@keyframes telemetry-pop {
+  0%,
+  100% {
+    transform: translateY(0);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  50% {
+    transform: translateY(-4px);
+    border-color: rgba(2, 249, 109, 0.24);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .matrix-backdrop__column,
   .matrix-backdrop__scanline,
@@ -980,7 +1151,11 @@
   .landing-float,
   .attack-map__line,
   .feature-orbit,
-  .creator-frame__ring {
+  .creator-frame__ring,
+  .packet-trace,
+  .scan-ribbon__track,
+  .telemetry-wall::before,
+  .telemetry-cell {
     animation: none;
   }
 
