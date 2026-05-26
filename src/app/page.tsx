@@ -102,17 +102,28 @@ const techLogos = [
 ];
 
 const creatorLogos = [
-  { name: "Wazuh", src: "https://cdn.simpleicons.org/wazuh/00A9E0" },
+  {
+    name: "Wazuh",
+    src: "https://wazuh.com/brand-assets/Wazuh-Logo.svg",
+    tone: "light",
+  },
   { name: "Splunk", src: "https://cdn.simpleicons.org/splunk/ffffff" },
-  { name: "Suricata", src: "https://cdn.simpleicons.org/suricata/EF3B2D" },
+  {
+    name: "Suricata",
+    src: "https://suricata.io/wp-content/uploads/2023/09/Logo-Suricata-vert-R.png",
+  },
   { name: "Wireshark", src: "https://cdn.simpleicons.org/wireshark/1679A7" },
-  { name: "Nmap", src: "https://cdn.simpleicons.org/nmap/7AA6C2" },
+  {
+    name: "Nmap",
+    src: "https://nmap.org/images/nmap-logo-256x256.png",
+    tone: "light",
+  },
   { name: "Docker", src: "https://cdn.simpleicons.org/docker/2496ED" },
   { name: "Python", src: "https://cdn.simpleicons.org/python/FFD43B" },
   { name: "Linux", src: "https://cdn.simpleicons.org/linux/FCC624" },
   { name: "Ansible", src: "https://cdn.simpleicons.org/ansible/EE0000" },
   { name: "Git", src: "https://cdn.simpleicons.org/git/F05032" },
-];
+] as const;
 
 function LandingLink({
   href,
@@ -136,12 +147,20 @@ function LandingLink({
   );
 }
 
-function LogoTile({ name, src }: { name: string; src: string }) {
+function LogoTile({
+  name,
+  src,
+  tone = "dark",
+}: {
+  name: string;
+  src: string;
+  tone?: "dark" | "light";
+}) {
   return (
-    <div className="logo-tile">
+    <div className={tone === "light" ? "logo-tile logo-tile--light" : "logo-tile"}>
       <div className="logo-tile__mark">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={src} alt="" className="size-7 object-contain" loading="lazy" />
+        <img src={src} alt="" className="max-h-10 max-w-24 object-contain" loading="lazy" />
       </div>
       <span>{name}</span>
     </div>
@@ -463,8 +482,15 @@ export default async function HomePage() {
                 rel="noreferrer"
                 className="inline-flex h-10 items-center gap-2 rounded-full border border-white/12 bg-white/4 px-4 text-sm text-[var(--text-primary)] transition-colors hover:bg-white/8"
               >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="https://cdn.simpleicons.org/github/ffffff"
+                  alt=""
+                  className="size-4"
+                  loading="lazy"
+                />
                 GitHub
-                <ExternalLink className="size-4" />
+                <ExternalLink className="size-3.5 text-[var(--text-muted)]" />
               </a>
               <a
                 href="https://linkedin.com/in/vsprs"
@@ -472,8 +498,15 @@ export default async function HomePage() {
                 rel="noreferrer"
                 className="inline-flex h-10 items-center gap-2 rounded-full border border-white/12 bg-white/4 px-4 text-sm text-[var(--text-primary)] transition-colors hover:bg-white/8"
               >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="https://cdn.simpleicons.org/linkedin/0A66C2"
+                  alt=""
+                  className="size-4"
+                  loading="lazy"
+                />
                 LinkedIn
-                <ExternalLink className="size-4" />
+                <ExternalLink className="size-3.5 text-[var(--text-muted)]" />
               </a>
             </div>
           </div>

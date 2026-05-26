@@ -736,9 +736,14 @@
   }
 
   .logo-tile__mark {
-    @apply flex size-12 items-center justify-center rounded-2xl border;
+    @apply flex h-14 w-20 items-center justify-center rounded-2xl border px-2;
     border-color: rgba(255, 255, 255, 0.1);
     background: rgba(0, 0, 0, 0.2);
+  }
+
+  .logo-tile--light .logo-tile__mark {
+    border-color: rgba(255, 255, 255, 0.86);
+    background: rgba(255, 255, 255, 0.94);
   }
 
   .logo-tile span {
