@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Dot } from "lucide-react";
 
+import { ProfileAvatar } from "@/components/app/profile-avatar";
 import type { AppRole } from "@/lib/auth";
 import { adminNavigation, primaryNavigation } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
@@ -29,15 +29,6 @@ type AppSidebarProps = {
   avatarUrl: string | null;
 };
 
-function initialsFromName(name: string) {
-  return name
-    .split(" ")
-    .map((part) => part[0] ?? "")
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-}
-
 export function AppSidebar({
   role,
   permissions,
@@ -46,7 +37,6 @@ export function AppSidebar({
 }: AppSidebarProps) {
   const pathname = usePathname();
   const isAdmin = role === "admin";
-  const initials = initialsFromName(displayName);
 
   const visiblePrimaryNavigation = primaryNavigation.filter((item) => {
     if (!item.requiredPermission) {
@@ -73,24 +63,12 @@ export function AppSidebar({
                 Malware Investigation Lab
               </p>
             </div>
-            <Dot className="size-5 text-primary" />
+            <Image src="/pollogo.svg" alt="" width={28} height={28} className="size-7" />
           </div>
         </Link>
 
         <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-[color:rgba(255,255,255,0.02)] px-2.5 py-2">
-          <div className="flex size-9 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-[var(--bg-card)]">
-            {avatarUrl ? (
-              <Image
-                src={avatarUrl}
-                alt={`${displayName} avatar`}
-                width={36}
-                height={36}
-                className="size-full object-cover"
-              />
-            ) : (
-              <span className="font-mono-ui text-[10px] text-[var(--text-secondary)]">{initials}</span>
-            )}
-          </div>
+          <ProfileAvatar displayName={displayName} avatarUrl={avatarUrl} className="size-9" />
           <div className="min-w-0 group-data-[collapsible=icon]:hidden">
             <p className="truncate text-sm font-medium text-[var(--text-primary)]">{displayName}</p>
             <p className="helix-rail-label mt-1">{isAdmin ? "Administrator" : "Analyst"}</p>

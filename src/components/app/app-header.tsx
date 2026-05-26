@@ -52,7 +52,7 @@ export function AppHeader({
         <div className="helix-grid-lines opacity-10" />
         <div className="relative z-10 flex items-center justify-between gap-3">
           <Link href="/dashboard" className="flex min-w-0 items-center gap-2 rounded-full px-2 py-1.5">
-            <Image src="/helix/helix-logo.svg" alt="Packet of Lies" width={28} height={28} className="size-8" />
+            <Image src="/pollogo.svg" alt="Packet of Lies" width={28} height={28} className="size-8" />
             <div className="hidden min-w-0 md:block">
               <p className="helix-kicker">Packet of Lies</p>
               <p className="truncate text-xs text-[var(--text-secondary)]">Malware Analysis and Mitigations</p>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { MatrixBackdrop } from "@/components/app/matrix-backdrop";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 import "@fontsource/geist";
@@ -13,6 +14,11 @@ export const metadata: Metadata = {
     template: "%s | Packet of Lies",
   },
   description: "Security operations workspace",
+  icons: {
+    icon: "/polFavicon.svg",
+    shortcut: "/polFavicon.svg",
+    apple: "/polFavicon.svg",
+  },
 };
 
 export default function RootLayout({
@@ -23,7 +29,10 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark h-full">
       <body className="min-h-full bg-[var(--bg-app)] font-sans text-foreground antialiased">
-        <TooltipProvider delay={150}>{children}</TooltipProvider>
+        <MatrixBackdrop />
+        <TooltipProvider delay={150}>
+          <div className="relative z-10 min-h-svh">{children}</div>
+        </TooltipProvider>
       </body>
     </html>
   );

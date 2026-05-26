@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import Image from "next/image";
 
+import { MatrixBackdrop } from "@/components/app/matrix-backdrop";
 import { RequestAccessForm } from "@/components/public/request-access-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAuthContext } from "@/lib/auth";
@@ -26,14 +27,8 @@ export default async function HomePage() {
 
   return (
     <main className="relative min-h-svh overflow-hidden">
-      <Image
-        src="/helix/hero-poster.webp"
-        alt="Security operations background"
-        fill
-        priority
-        className="object-cover object-center opacity-25"
-      />
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,7,8,0.76),rgba(7,14,11,0.95))]" />
+      <MatrixBackdrop intensity="full" />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(1,5,3,0.24),rgba(1,4,3,0.78))]" />
       <div className="helix-grid-lines opacity-20" />
 
       <div className="relative z-10 mx-auto flex min-h-svh w-full max-w-6xl flex-col px-4 pb-12 pt-10 md:px-8">
@@ -41,7 +36,7 @@ export default async function HomePage() {
           <div className="helix-grid-lines opacity-10" />
           <div className="relative z-10 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <Image src="/helix/helix-logo.svg" alt="Packet of Lies" width={30} height={30} className="size-8" />
+              <Image src="/pollogo.svg" alt="Packet of Lies" width={30} height={30} className="size-8" />
               <div>
                 <p className="helix-kicker">Packet of Lies</p>
                 <p className="text-xs text-[var(--text-secondary)]">Malware Analysis and Mitigations</p>
