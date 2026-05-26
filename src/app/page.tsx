@@ -21,6 +21,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { getAuthContext } from "@/lib/auth";
 import { isBootstrapRequired } from "@/lib/bootstrap-state";
 
+export const dynamic = "force-dynamic";
+
 const productFlow = [
   {
     title: "Triage",
@@ -75,15 +77,6 @@ const featureRows = [
     text: "Admin approval, joining codes, roles, permissions, profile setup, and protected routes.",
     icon: LockKeyhole,
   },
-];
-
-const prdSignals = [
-  "Detection and triage",
-  "Provider-backed analysis",
-  "Incident response notes",
-  "Mitigation tracking",
-  "IOC management",
-  "Case reporting",
 ];
 
 const techLogos = [
@@ -224,7 +217,7 @@ export default async function HomePage() {
 
               <div className="flex items-center gap-2">
                 {auth ? (
-                  <LandingLink href={workspaceHref}>Open dashboard</LandingLink>
+                  <LandingLink href={workspaceHref}>Go to dashboard</LandingLink>
                 ) : bootstrapRequired ? (
                   <LandingLink href="/auth/bootstrap">Create first admin</LandingLink>
                 ) : (
@@ -266,7 +259,7 @@ export default async function HomePage() {
             </p>
             <div className="flex flex-wrap gap-3">
               {auth ? (
-                <LandingLink href={workspaceHref}>Open dashboard</LandingLink>
+                <LandingLink href={workspaceHref}>Go to dashboard</LandingLink>
               ) : bootstrapRequired ? (
                 <LandingLink href="/auth/bootstrap">Create first admin</LandingLink>
               ) : (
@@ -401,19 +394,25 @@ export default async function HomePage() {
         <section className="landing-reveal grid gap-5 py-14 lg:grid-cols-[0.92fr_1.08fr]">
           <div className="statement-panel">
             <h2 className="font-heading text-4xl font-semibold tracking-normal">
-              Honest PRD coverage for an academic build.
+              Clear about what this version does and does not do.
             </h2>
             <p>
-              The PRD describes an enterprise malware program. This project implements
-              the version that makes sense for a university deadline: the workflow,
-              evidence model, analysis integrations, reporting, and access control.
-              Endpoint isolation, SIEM control, firewall orchestration, and real malware
-              execution stay outside the app.
+              Packet of Lies is an investigation and documentation workspace. It helps
+              organize case activity, evidence, provider results, IOCs, mitigations, and
+              reports. It does not execute malware, isolate real endpoints, control
+              firewalls, restore backups, or replace a production security platform.
             </p>
           </div>
 
           <div className="signal-grid">
-            {prdSignals.map((item) => (
+            {[
+              "Safe analysis workflow",
+              "External provider intelligence",
+              "Evidence and notes",
+              "Mitigation planning",
+              "IOC tracking",
+              "Report preparation",
+            ].map((item) => (
               <div key={item} className="signal-row">
                 <CheckCircle2 className="size-5 text-primary" />
                 <span>{item}</span>
@@ -543,13 +542,13 @@ export default async function HomePage() {
           ) : auth ? (
             <Card className="panel-shadow">
               <CardHeader>
-                <CardTitle>Workspace is ready</CardTitle>
+                <CardTitle>You are already signed in</CardTitle>
                 <CardDescription>
                   Continue to the protected investigation environment.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <LandingLink href={workspaceHref}>Open dashboard</LandingLink>
+                <LandingLink href={workspaceHref}>Go to dashboard</LandingLink>
               </CardContent>
             </Card>
           ) : (
