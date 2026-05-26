@@ -25,23 +25,23 @@ export const dynamic = "force-dynamic";
 
 const productFlow = [
   {
-    title: "Triage",
-    text: "Open a case, set urgency, and give every suspicious artifact a place to live.",
+    title: "Intake",
+    text: "Create a numbered case for the hash, URL, file note, domain, IP, or manual incident report.",
     icon: Workflow,
   },
   {
-    title: "Analyze",
-    text: "Submit hashes, URLs, files, domains, and IPs for provider-backed intelligence.",
+    title: "Enrich",
+    text: "Send hashes and URLs to VirusTotal or Hybrid Analysis, then keep the result beside the case.",
     icon: BrainCircuit,
   },
   {
-    title: "Contain",
-    text: "Turn evidence into findings, response actions, and mitigation notes.",
+    title: "Respond",
+    text: "Write the finding, attach evidence, assign ownership, and record the mitigation that follows.",
     icon: ShieldCheck,
   },
   {
-    title: "Report",
-    text: "Package the case story into IOCs, recommendations, and a review-ready report.",
+    title: "Handoff",
+    text: "Close the loop with IOCs, timeline activity, recommendations, and a report a reviewer can audit.",
     icon: BookOpenCheck,
   },
 ];
@@ -49,32 +49,32 @@ const productFlow = [
 const featureRows = [
   {
     title: "Caseboard",
-    text: "A live investigation desk for status, priority, severity, ownership, and handoff notes.",
+    text: "Numbered cases with severity, priority, status, assignment, and a live activity stream.",
     icon: Radar,
   },
   {
     title: "Analysis hub",
-    text: "VirusTotal and Hybrid Analysis runs sit beside cached results and provider report links.",
+    text: "VirusTotal and Hybrid Analysis verdicts, cached runs, risk scores, and external report links.",
     icon: TerminalSquare,
   },
   {
     title: "Evidence trail",
-    text: "Findings, mitigations, comments, PDF attachments, and activity history stay tied to the case.",
+    text: "Findings, mitigations, analyst comments, PDF evidence, and every case mutation in one thread.",
     icon: Fingerprint,
   },
   {
     title: "IOC registry",
-    text: "Hashes, URLs, domains, IP addresses, emails, and filenames become searchable threat context.",
+    text: "SHA256 hashes, domains, IPv4s, URLs, email artifacts, and filenames linked back to source cases.",
     icon: Database,
   },
   {
     title: "Report studio",
-    text: "Generate incident summaries that read like a response record, not a loose pile of notes.",
+    text: "Case-linked summaries, findings, and recommendations shaped for university review and demo day.",
     icon: FileText,
   },
   {
     title: "Controlled access",
-    text: "Admin approval, joining codes, roles, permissions, profile setup, and protected routes.",
+    text: "Approval requests, one-time join codes, analyst/admin roles, completed profiles, and route guards.",
     icon: LockKeyhole,
   },
 ];
@@ -245,17 +245,18 @@ export default async function HomePage() {
           <div className="space-y-7">
             <div className="space-y-5">
               <h1 className="font-heading text-5xl leading-[0.92] font-semibold tracking-normal text-[var(--text-primary)] md:text-7xl">
-                Malware work should leave a clean trail.
+                Turn malware clues into a defensible case file.
               </h1>
               <p className="max-w-2xl text-lg leading-8 text-[var(--text-secondary)] md:text-xl">
-                Packet of Lies turns suspicious links, hashes, files, and analyst notes
-                into a case story your team can follow from first signal to final report.
+                Packet of Lies gives every suspicious hash, URL, file note, IOC, finding,
+                and mitigation a place in the investigation timeline.
               </p>
             </div>
             <p className="max-w-xl text-sm leading-7 text-[var(--text-muted)]">
-              Built for a cybersecurity university project, it keeps the dangerous parts
-              outside the browser and focuses on the work that makes incident response
-              credible: triage, evidence, mitigations, IOCs, access control, and reports.
+              Built as a cybersecurity university project, it keeps live malware execution
+              out of the browser and focuses on the analyst workflow that can be safely
+              demonstrated: case intake, provider lookups, evidence, mitigations, IOCs,
+              access control, and reports.
             </p>
             <div className="flex flex-wrap gap-3">
               {auth ? (
@@ -299,10 +300,10 @@ export default async function HomePage() {
                   ))}
                 </div>
                 <div className="helix-terminal p-4">
-                  <p>CASE-01024 :: URL submitted</p>
-                  <p>VT completed :: suspicious</p>
+                  <p>CASE-01024 :: suspicious URL submitted</p>
+                  <p>VirusTotal :: 18 engines marked suspicious</p>
                   <p>Finding saved :: credential theft pattern</p>
-                  <p>Mitigation queued :: isolate endpoint</p>
+                  <p>Mitigation queued :: block URL and monitor user</p>
                 </div>
               </div>
 
@@ -327,12 +328,12 @@ export default async function HomePage() {
           <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr]">
             <div className="space-y-4">
               <h2 className="font-heading text-4xl font-semibold tracking-normal md:text-5xl">
-                From artifact to answer.
+                One flow for the whole investigation.
               </h2>
               <p className="helix-copy">
-                A malware investigation is only useful when every action can be traced.
-                Packet of Lies makes the workflow visible instead of hiding it inside
-                scattered notes and screenshots.
+                A useful malware report needs more than a verdict. It needs the intake
+                record, the enrichment source, the analyst conclusion, and the response
+                action to line up in the same case.
               </p>
             </div>
 
@@ -356,11 +357,12 @@ export default async function HomePage() {
         <section id="features" className="landing-reveal py-14">
           <div className="mb-8 grid gap-4 md:grid-cols-[0.8fr_1.2fr] md:items-end">
             <h2 className="font-heading text-4xl font-semibold tracking-normal md:text-5xl">
-              The workspace, not the sales pitch.
+              The case room: evidence, IOCs, decisions, and handoff.
             </h2>
             <p className="text-base leading-8 text-[var(--text-secondary)]">
-              Cases, evidence, provider analysis, IOCs, reports, and admin control are
-              designed as one investigation surface. Each module feeds the next one.
+              The dashboard does not pretend to be an antivirus engine. It acts like the
+              operating table around one malware incident, with every note and observable
+              tied back to the case that produced it.
             </p>
           </div>
 
@@ -394,24 +396,24 @@ export default async function HomePage() {
         <section className="landing-reveal grid gap-5 py-14 lg:grid-cols-[0.92fr_1.08fr]">
           <div className="statement-panel">
             <h2 className="font-heading text-4xl font-semibold tracking-normal">
-              Clear about what this version does and does not do.
+              Safe by design, scoped for a university build.
             </h2>
             <p>
-              Packet of Lies is an investigation and documentation workspace. It helps
-              organize case activity, evidence, provider results, IOCs, mitigations, and
-              reports. It does not execute malware, isolate real endpoints, control
-              firewalls, restore backups, or replace a production security platform.
+              This version organizes case activity, evidence, VirusTotal and Hybrid
+              Analysis results, IOCs, mitigations, and reports. It does not run malware
+              samples, quarantine real machines, push firewall rules, restore backups, or
+              replace an enterprise security stack.
             </p>
           </div>
 
           <div className="signal-grid">
             {[
-              "Safe analysis workflow",
-              "External provider intelligence",
-              "Evidence and notes",
-              "Mitigation planning",
-              "IOC tracking",
-              "Report preparation",
+              "No malware execution in-browser",
+              "VirusTotal and Hybrid Analysis lookups",
+              "Case-linked evidence notes",
+              "Mitigation records per incident",
+              "Observable registry for IOCs",
+              "Reports built from case data",
             ].map((item) => (
               <div key={item} className="signal-row">
                 <CheckCircle2 className="size-5 text-primary" />
@@ -425,12 +427,12 @@ export default async function HomePage() {
           <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-center">
             <div className="space-y-4">
               <h2 className="font-heading text-4xl font-semibold tracking-normal md:text-5xl">
-                Built on tools people recognize.
+                A stack chosen for a real demo, not a fake mockup.
               </h2>
               <p className="helix-copy">
-                The stack stays practical: a Next.js interface, Supabase-backed data and
-                auth, provider APIs for malware intelligence, and deployment-ready
-                production tooling.
+                Next.js renders the interface, Supabase stores cases and protects routes,
+                provider APIs enrich malware clues, and Vercel keeps the project easy to
+                deploy before evaluation day.
               </p>
             </div>
             <div className="logo-cloud">
@@ -457,14 +459,14 @@ export default async function HomePage() {
           <div className="space-y-6">
             <div className="space-y-4">
               <h2 className="font-heading text-4xl font-semibold tracking-normal md:text-5xl">
-                I built Packet of Lies to make malware response easier to present,
-                follow, and defend.
+                I built this because malware analysis demos deserve more than screenshots.
               </h2>
               <p className="text-base leading-8 text-[var(--text-secondary)]">
                 I&apos;m Venkata Sai Prasanna Reddy Solipeta, a Computer Science -
-                Cybersecurity student at KLH University, Hyderabad. My work leans into
-                security operations, network defense, self-hosted infrastructure,
-                automation, and practical incident response tooling.
+                Cybersecurity student at KLH University, Hyderabad. Packet of Lies brings
+                my interests together: security operations, network defense, self-hosted
+                infrastructure, automation, and incident response tooling that can be
+                explained clearly under review.
               </p>
             </div>
 
@@ -514,11 +516,11 @@ export default async function HomePage() {
         <section id="request-access" className="landing-reveal grid gap-5 py-14 lg:grid-cols-[0.85fr_1.15fr]">
           <div className="space-y-4">
             <h2 className="font-heading text-4xl font-semibold tracking-normal md:text-5xl">
-              Enter through approval. Work inside the case room.
+              Request access, then work inside the investigation room.
             </h2>
             <p className="helix-copy">
-              Packet of Lies uses controlled access: request approval, receive a joining
-              code, create your account, and continue into the protected workspace.
+              New users submit a request. An admin approves it, sends a one-time joining
+              code, and the account enters the protected case workspace with the right role.
             </p>
             {!auth && !bootstrapRequired ? (
               <LandingLink href="/auth/login" variant="secondary">
