@@ -4,7 +4,6 @@ import {
   ArrowRight,
   BookOpenCheck,
   BrainCircuit,
-  CheckCircle2,
   Database,
   ExternalLink,
   FileText,
@@ -423,36 +422,6 @@ export default async function HomePage() {
                 </div>
               ))}
             </div>
-          </div>
-        </section>
-
-        <section className="landing-reveal grid gap-5 py-14 lg:grid-cols-[0.92fr_1.08fr]">
-          <div className="statement-panel">
-            <h2 className="font-heading text-4xl font-semibold tracking-normal">
-              Safe by design, scoped for a university build.
-            </h2>
-            <p>
-              This version organizes case activity, evidence, VirusTotal and Hybrid
-              Analysis results, IOCs, mitigations, and reports. It does not run malware
-              samples, quarantine real machines, push firewall rules, restore backups, or
-              replace an enterprise security stack.
-            </p>
-          </div>
-
-          <div className="signal-grid">
-            {[
-              "No malware execution in-browser",
-              "VirusTotal and Hybrid Analysis lookups",
-              "Case-linked evidence notes",
-              "Mitigation records per incident",
-              "Observable registry for IOCs",
-              "Reports built from case data",
-            ].map((item) => (
-              <div key={item} className="signal-row">
-                <CheckCircle2 className="size-5 text-primary" />
-                <span>{item}</span>
-              </div>
-            ))}
           </div>
         </section>
 
