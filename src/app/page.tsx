@@ -451,7 +451,7 @@ export default async function HomePage() {
           <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-center">
             <div className="space-y-4">
               <h2 className="font-heading text-4xl font-semibold tracking-normal md:text-5xl">
-                A stack chosen for a real demo, not a fake mockup.
+                tech stack i used
               </h2>
               <p className="helix-copy">
                 Next.js renders the interface, Supabase stores cases and protects routes,
