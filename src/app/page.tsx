@@ -482,9 +482,6 @@ export default async function HomePage() {
 
           <div className="space-y-6">
             <div className="space-y-4">
-              <h2 className="font-heading text-4xl font-semibold tracking-normal md:text-5xl">
-                I built this because malware analysis demos deserve more than screenshots.
-              </h2>
               <p className="text-base leading-8 text-[var(--text-secondary)]">
                 I&apos;m Venkata Sai Prasanna Reddy Solipeta, a Computer Science -
                 Cybersecurity student at KLH University, Hyderabad. Packet of Lies brings
