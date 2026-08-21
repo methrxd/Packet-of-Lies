@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { AppHeader } from "@/components/app/app-header";
 import { IdleSessionGuard } from "@/components/app/idle-session-guard";
 import { getAuthContext } from "@/lib/auth";
+import { getMfaStatus } from "@/lib/mfa";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const auth = await getAuthContext();
@@ -14,6 +16,17 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
 
   if (!auth.isProfileComplete) {
     redirect("/auth/complete-profile");
+  }
+
+  const supabase = await createClient();
+  const mfa = await getMfaStatus(supabase);
+
+  if (mfa.needsEnrollment) {
+    redirect("/auth/mfa/setup");
+  }
+
+  if (mfa.needsChallenge) {
+    redirect("/auth/mfa/verify");
   }
 
   return (

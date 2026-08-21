@@ -21,25 +21,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { getAuthContext } from "@/lib/auth";
 import { isBootstrapRequired } from "@/lib/bootstrap-state";
 
+export const dynamic = "force-dynamic";
+
 const productFlow = [
   {
-    title: "Triage",
-    text: "Open a case, set urgency, and give every suspicious artifact a place to live.",
+    title: "Intake",
+    text: "Create a numbered case for the hash, URL, file note, domain, IP, or manual incident report.",
     icon: Workflow,
   },
   {
-    title: "Analyze",
-    text: "Submit hashes, URLs, files, domains, and IPs for provider-backed intelligence.",
+    title: "Enrich",
+    text: "Send hashes and URLs to VirusTotal or Hybrid Analysis, then keep the result beside the case.",
     icon: BrainCircuit,
   },
   {
-    title: "Contain",
-    text: "Turn evidence into findings, response actions, and mitigation notes.",
+    title: "Respond",
+    text: "Write the finding, attach evidence, assign ownership, and record the mitigation that follows.",
     icon: ShieldCheck,
   },
   {
-    title: "Report",
-    text: "Package the case story into IOCs, recommendations, and a review-ready report.",
+    title: "Handoff",
+    text: "Close the loop with IOCs, timeline activity, recommendations, and a report a reviewer can audit.",
     icon: BookOpenCheck,
   },
 ];
@@ -47,43 +49,34 @@ const productFlow = [
 const featureRows = [
   {
     title: "Caseboard",
-    text: "A live investigation desk for status, priority, severity, ownership, and handoff notes.",
+    text: "Numbered cases with severity, priority, status, assignment, and a live activity stream.",
     icon: Radar,
   },
   {
     title: "Analysis hub",
-    text: "VirusTotal and Hybrid Analysis runs sit beside cached results and provider report links.",
+    text: "VirusTotal and Hybrid Analysis verdicts, cached runs, risk scores, and external report links.",
     icon: TerminalSquare,
   },
   {
     title: "Evidence trail",
-    text: "Findings, mitigations, comments, PDF attachments, and activity history stay tied to the case.",
+    text: "Findings, mitigations, analyst comments, PDF evidence, and every case mutation in one thread.",
     icon: Fingerprint,
   },
   {
     title: "IOC registry",
-    text: "Hashes, URLs, domains, IP addresses, emails, and filenames become searchable threat context.",
+    text: "SHA256 hashes, domains, IPv4s, URLs, email artifacts, and filenames linked back to source cases.",
     icon: Database,
   },
   {
     title: "Report studio",
-    text: "Generate incident summaries that read like a response record, not a loose pile of notes.",
+    text: "Case-linked summaries, findings, and recommendations shaped for university review and demo day.",
     icon: FileText,
   },
   {
     title: "Controlled access",
-    text: "Admin approval, joining codes, roles, permissions, profile setup, and protected routes.",
+    text: "Approval requests, one-time join codes, analyst/admin roles, completed profiles, and route guards.",
     icon: LockKeyhole,
   },
-];
-
-const prdSignals = [
-  "Detection and triage",
-  "Provider-backed analysis",
-  "Incident response notes",
-  "Mitigation tracking",
-  "IOC management",
-  "Case reporting",
 ];
 
 const techLogos = [
@@ -102,16 +95,47 @@ const techLogos = [
 ];
 
 const creatorLogos = [
-  { name: "Wazuh", src: "https://cdn.simpleicons.org/wazuh/00A9E0" },
+  {
+    name: "Wazuh",
+    src: "https://wazuh.com/brand-assets/Wazuh-Logo.svg",
+    tone: "light",
+  },
   { name: "Splunk", src: "https://cdn.simpleicons.org/splunk/ffffff" },
-  { name: "Suricata", src: "https://cdn.simpleicons.org/suricata/EF3B2D" },
+  {
+    name: "Suricata",
+    src: "https://suricata.io/wp-content/uploads/2023/09/Logo-Suricata-vert-R.png",
+  },
   { name: "Wireshark", src: "https://cdn.simpleicons.org/wireshark/1679A7" },
-  { name: "Nmap", src: "https://cdn.simpleicons.org/nmap/7AA6C2" },
+  {
+    name: "Nmap",
+    src: "https://nmap.org/images/nmap-logo-256x256.png",
+    tone: "light",
+  },
   { name: "Docker", src: "https://cdn.simpleicons.org/docker/2496ED" },
   { name: "Python", src: "https://cdn.simpleicons.org/python/FFD43B" },
   { name: "Linux", src: "https://cdn.simpleicons.org/linux/FCC624" },
   { name: "Ansible", src: "https://cdn.simpleicons.org/ansible/EE0000" },
   { name: "Git", src: "https://cdn.simpleicons.org/git/F05032" },
+] as const;
+
+const scanTickerItems = [
+  "hash: 3f2a...9c1e",
+  "url: credential-gate flagged",
+  "ioc: domain linked",
+  "verdict: suspicious",
+  "mitigation: block and monitor",
+  "report: evidence attached",
+  "case: CASE-01024 updated",
+  "analyst: finding recorded",
+];
+
+const caseTelemetry = [
+  ["Submitted", "URL artifact"],
+  ["Provider", "VirusTotal"],
+  ["Verdict", "Suspicious"],
+  ["Linked", "4 IOCs"],
+  ["Action", "Block URL"],
+  ["Report", "Draft ready"],
 ];
 
 function LandingLink({
@@ -136,12 +160,20 @@ function LandingLink({
   );
 }
 
-function LogoTile({ name, src }: { name: string; src: string }) {
+function LogoTile({
+  name,
+  src,
+  tone = "dark",
+}: {
+  name: string;
+  src: string;
+  tone?: "dark" | "light";
+}) {
   return (
-    <div className="logo-tile">
+    <div className={tone === "light" ? "logo-tile logo-tile--light" : "logo-tile"}>
       <div className="logo-tile__mark">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={src} alt="" className="size-7 object-contain" loading="lazy" />
+        <img src={src} alt="" className="max-h-10 max-w-24 object-contain" loading="lazy" />
       </div>
       <span>{name}</span>
     </div>
@@ -205,7 +237,7 @@ export default async function HomePage() {
 
               <div className="flex items-center gap-2">
                 {auth ? (
-                  <LandingLink href={workspaceHref}>Open dashboard</LandingLink>
+                  <LandingLink href={workspaceHref}>Go to dashboard</LandingLink>
                 ) : bootstrapRequired ? (
                   <LandingLink href="/auth/bootstrap">Create first admin</LandingLink>
                 ) : (
@@ -233,21 +265,22 @@ export default async function HomePage() {
           <div className="space-y-7">
             <div className="space-y-5">
               <h1 className="font-heading text-5xl leading-[0.92] font-semibold tracking-normal text-[var(--text-primary)] md:text-7xl">
-                Malware work should leave a clean trail.
+                Turn malware clues into a defensible case file.
               </h1>
               <p className="max-w-2xl text-lg leading-8 text-[var(--text-secondary)] md:text-xl">
-                Packet of Lies turns suspicious links, hashes, files, and analyst notes
-                into a case story your team can follow from first signal to final report.
+                Packet of Lies gives every suspicious hash, URL, file note, IOC, finding,
+                and mitigation a place in the investigation timeline.
               </p>
             </div>
             <p className="max-w-xl text-sm leading-7 text-[var(--text-muted)]">
-              Built for a cybersecurity university project, it keeps the dangerous parts
-              outside the browser and focuses on the work that makes incident response
-              credible: triage, evidence, mitigations, IOCs, access control, and reports.
+              Built as a cybersecurity university project, it keeps live malware execution
+              out of the browser and focuses on the analyst workflow that can be safely
+              demonstrated: case intake, provider lookups, evidence, mitigations, IOCs,
+              access control, and reports.
             </p>
             <div className="flex flex-wrap gap-3">
               {auth ? (
-                <LandingLink href={workspaceHref}>Open dashboard</LandingLink>
+                <LandingLink href={workspaceHref}>Go to dashboard</LandingLink>
               ) : bootstrapRequired ? (
                 <LandingLink href="/auth/bootstrap">Create first admin</LandingLink>
               ) : (
@@ -287,14 +320,17 @@ export default async function HomePage() {
                   ))}
                 </div>
                 <div className="helix-terminal p-4">
-                  <p>CASE-01024 :: URL submitted</p>
-                  <p>VT completed :: suspicious</p>
+                  <p>CASE-01024 :: suspicious URL submitted</p>
+                  <p>VirusTotal :: 18 engines marked suspicious</p>
                   <p>Finding saved :: credential theft pattern</p>
-                  <p>Mitigation queued :: isolate endpoint</p>
+                  <p>Mitigation queued :: block URL and monitor user</p>
                 </div>
               </div>
 
               <div className="attack-map" aria-label="Case workflow diagram">
+                <div className="packet-trace packet-trace--one" />
+                <div className="packet-trace packet-trace--two" />
+                <div className="packet-trace packet-trace--three" />
                 <div className="attack-map__line" />
                 {productFlow.map((step, index) => (
                   <div key={step.title} className={`attack-map__node attack-map__node--${index + 1}`}>
@@ -311,16 +347,26 @@ export default async function HomePage() {
           </div>
         </section>
 
+        <section className="landing-reveal py-8">
+          <div className="scan-ribbon">
+            <div className="scan-ribbon__track">
+              {[...scanTickerItems, ...scanTickerItems].map((item, index) => (
+                <span key={`${item}-${index}`}>{item}</span>
+              ))}
+            </div>
+          </div>
+        </section>
+
         <section id="flow" className="landing-reveal py-14">
           <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr]">
             <div className="space-y-4">
               <h2 className="font-heading text-4xl font-semibold tracking-normal md:text-5xl">
-                From artifact to answer.
+                One flow for the whole investigation.
               </h2>
               <p className="helix-copy">
-                A malware investigation is only useful when every action can be traced.
-                Packet of Lies makes the workflow visible instead of hiding it inside
-                scattered notes and screenshots.
+                A useful malware report needs more than a verdict. It needs the intake
+                record, the enrichment source, the analyst conclusion, and the response
+                action to line up in the same case.
               </p>
             </div>
 
@@ -344,11 +390,12 @@ export default async function HomePage() {
         <section id="features" className="landing-reveal py-14">
           <div className="mb-8 grid gap-4 md:grid-cols-[0.8fr_1.2fr] md:items-end">
             <h2 className="font-heading text-4xl font-semibold tracking-normal md:text-5xl">
-              The workspace, not the sales pitch.
+              The case room: evidence, IOCs, decisions, and handoff.
             </h2>
             <p className="text-base leading-8 text-[var(--text-secondary)]">
-              Cases, evidence, provider analysis, IOCs, reports, and admin control are
-              designed as one investigation surface. Each module feeds the next one.
+              The dashboard does not pretend to be an antivirus engine. It acts like the
+              operating table around one malware incident, with every note and observable
+              tied back to the case that produced it.
             </p>
           </div>
 
@@ -382,19 +429,25 @@ export default async function HomePage() {
         <section className="landing-reveal grid gap-5 py-14 lg:grid-cols-[0.92fr_1.08fr]">
           <div className="statement-panel">
             <h2 className="font-heading text-4xl font-semibold tracking-normal">
-              Honest PRD coverage for an academic build.
+              Safe by design, scoped for a university build.
             </h2>
             <p>
-              The PRD describes an enterprise malware program. This project implements
-              the version that makes sense for a university deadline: the workflow,
-              evidence model, analysis integrations, reporting, and access control.
-              Endpoint isolation, SIEM control, firewall orchestration, and real malware
-              execution stay outside the app.
+              This version organizes case activity, evidence, VirusTotal and Hybrid
+              Analysis results, IOCs, mitigations, and reports. It does not run malware
+              samples, quarantine real machines, push firewall rules, restore backups, or
+              replace an enterprise security stack.
             </p>
           </div>
 
           <div className="signal-grid">
-            {prdSignals.map((item) => (
+            {[
+              "No malware execution in-browser",
+              "VirusTotal and Hybrid Analysis lookups",
+              "Case-linked evidence notes",
+              "Mitigation records per incident",
+              "Observable registry for IOCs",
+              "Reports built from case data",
+            ].map((item) => (
               <div key={item} className="signal-row">
                 <CheckCircle2 className="size-5 text-primary" />
                 <span>{item}</span>
@@ -403,16 +456,38 @@ export default async function HomePage() {
           </div>
         </section>
 
+        <section className="landing-reveal py-14">
+          <div className="telemetry-wall">
+            <div className="telemetry-wall__copy">
+              <h2 className="font-heading text-4xl font-semibold tracking-normal md:text-5xl">
+                The case changes shape as evidence arrives.
+              </h2>
+              <p>
+                Provider results, analyst findings, linked observables, and mitigation
+                records are treated as one moving stream instead of separate screenshots.
+              </p>
+            </div>
+            <div className="telemetry-grid">
+              {caseTelemetry.map(([label, value], index) => (
+                <div key={label} className="telemetry-cell" style={{ "--delay": `${index * 120}ms` } as React.CSSProperties}>
+                  <span>{label}</span>
+                  <strong>{value}</strong>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         <section id="stack" className="landing-reveal py-14">
           <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-center">
             <div className="space-y-4">
               <h2 className="font-heading text-4xl font-semibold tracking-normal md:text-5xl">
-                Built on tools people recognize.
+                A stack chosen for a real demo, not a fake mockup.
               </h2>
               <p className="helix-copy">
-                The stack stays practical: a Next.js interface, Supabase-backed data and
-                auth, provider APIs for malware intelligence, and deployment-ready
-                production tooling.
+                Next.js renders the interface, Supabase stores cases and protects routes,
+                provider APIs enrich malware clues, and Vercel keeps the project easy to
+                deploy before evaluation day.
               </p>
             </div>
             <div className="logo-cloud">
@@ -439,14 +514,14 @@ export default async function HomePage() {
           <div className="space-y-6">
             <div className="space-y-4">
               <h2 className="font-heading text-4xl font-semibold tracking-normal md:text-5xl">
-                I built Packet of Lies to make malware response easier to present,
-                follow, and defend.
+                I built this because malware analysis demos deserve more than screenshots.
               </h2>
               <p className="text-base leading-8 text-[var(--text-secondary)]">
                 I&apos;m Venkata Sai Prasanna Reddy Solipeta, a Computer Science -
-                Cybersecurity student at KLH University, Hyderabad. My work leans into
-                security operations, network defense, self-hosted infrastructure,
-                automation, and practical incident response tooling.
+                Cybersecurity student at KLH University, Hyderabad. Packet of Lies brings
+                my interests together: security operations, network defense, self-hosted
+                infrastructure, automation, and incident response tooling that can be
+                explained clearly under review.
               </p>
             </div>
 
@@ -463,8 +538,15 @@ export default async function HomePage() {
                 rel="noreferrer"
                 className="inline-flex h-10 items-center gap-2 rounded-full border border-white/12 bg-white/4 px-4 text-sm text-[var(--text-primary)] transition-colors hover:bg-white/8"
               >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="https://cdn.simpleicons.org/github/ffffff"
+                  alt=""
+                  className="size-4"
+                  loading="lazy"
+                />
                 GitHub
-                <ExternalLink className="size-4" />
+                <ExternalLink className="size-3.5 text-[var(--text-muted)]" />
               </a>
               <a
                 href="https://linkedin.com/in/vsprs"
@@ -472,8 +554,15 @@ export default async function HomePage() {
                 rel="noreferrer"
                 className="inline-flex h-10 items-center gap-2 rounded-full border border-white/12 bg-white/4 px-4 text-sm text-[var(--text-primary)] transition-colors hover:bg-white/8"
               >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="https://cdn.simpleicons.org/linkedin/0A66C2"
+                  alt=""
+                  className="size-4"
+                  loading="lazy"
+                />
                 LinkedIn
-                <ExternalLink className="size-4" />
+                <ExternalLink className="size-3.5 text-[var(--text-muted)]" />
               </a>
             </div>
           </div>
@@ -482,11 +571,11 @@ export default async function HomePage() {
         <section id="request-access" className="landing-reveal grid gap-5 py-14 lg:grid-cols-[0.85fr_1.15fr]">
           <div className="space-y-4">
             <h2 className="font-heading text-4xl font-semibold tracking-normal md:text-5xl">
-              Enter through approval. Work inside the case room.
+              Request access, then work inside the investigation room.
             </h2>
             <p className="helix-copy">
-              Packet of Lies uses controlled access: request approval, receive a joining
-              code, create your account, and continue into the protected workspace.
+              New users submit a request. An admin approves it, sends a one-time joining
+              code, and the account enters the protected case workspace with the right role.
             </p>
             {!auth && !bootstrapRequired ? (
               <LandingLink href="/auth/login" variant="secondary">
@@ -510,13 +599,13 @@ export default async function HomePage() {
           ) : auth ? (
             <Card className="panel-shadow">
               <CardHeader>
-                <CardTitle>Workspace is ready</CardTitle>
+                <CardTitle>You are already signed in</CardTitle>
                 <CardDescription>
                   Continue to the protected investigation environment.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <LandingLink href={workspaceHref}>Open dashboard</LandingLink>
+                <LandingLink href={workspaceHref}>Go to dashboard</LandingLink>
               </CardContent>
             </Card>
           ) : (

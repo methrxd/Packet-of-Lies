@@ -31,7 +31,7 @@ export function CompleteProfileForm({
 
   useEffect(() => {
     if (state.status === "success") {
-      router.push("/dashboard");
+      router.push("/auth/mfa/setup");
       router.refresh();
     }
   }, [router, state.status]);
